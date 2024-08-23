@@ -118,7 +118,7 @@ where (
         and refundbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= curdate() 
+                where status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= curdate()
         )
         and (
                 wapg.mid in (
@@ -133,7 +133,7 @@ where (
                 )
         )
 order by 1;
-"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE.csv
+"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 
 }
@@ -160,7 +160,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_MP_WORKING_FILE.csv
+put AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 bye
 EOF

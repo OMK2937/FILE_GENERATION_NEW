@@ -594,7 +594,7 @@ where
     where
       created_at >= curdate()
       and status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending') and t.statecode between 28 and 68;
-"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE.csv
+"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
 
 
 
@@ -603,7 +603,7 @@ where
 Queries
 
 echo -e "\nBefore executing the FTP Function..\n"
-ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE.csv 
+ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
 date
 echo -e "\n\n"
 
@@ -626,7 +626,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCORW_MP_WORKING_FILE.csv
+put AXIS_ESCORW_MP_WORKING_FILE_test.csv
 
 bye
 EOF

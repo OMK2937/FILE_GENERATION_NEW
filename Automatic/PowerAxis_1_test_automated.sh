@@ -15,8 +15,6 @@ Queries()
 
 
 
-
-
 query="select 'txp' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
@@ -47,7 +45,7 @@ select 'wallet_as_pg_ledger_metadata' as Table_name,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
 from mobinew.wallet_as_pg_ledger_metadata ";
 
-echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/Tables_timestamp_data.csv
+echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/Tables_timestamp_data_test.csv
 
 
 ftp_upload()
@@ -69,7 +67,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put Tables_timestamp_data.csv
+put Tables_timestamp_data_test.csv
 
 bye
 EOF
@@ -137,7 +135,7 @@ where ks.merchant_id = m.mid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_PAYOUT_FILE.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_PAYOUT_FILE_test.csv
 
 ftp_upload()
 {
@@ -158,7 +156,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_NMP_PAYOUT_FILE.csv
+put AXIS_ESCROW_NMP_PAYOUT_FILE_test.csv
 
 bye
 EOF
@@ -219,7 +217,7 @@ where ks.merchant_id = m.mid
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE.csv
+        );"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_test.csv
 
 
 ftp_upload()
@@ -241,7 +239,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE.csv
+put AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_test.csv
 
 bye
 EOF
@@ -303,7 +301,7 @@ where ks.merchant_id = m.smid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_test.csv
 
 ftp_upload()
 {
@@ -324,7 +322,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE.csv
+put AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_test.csv
 
 bye
 EOF
@@ -508,7 +506,7 @@ where sw.merchant_id = m.mid
         )
 group by s.parentmid,
         batch_id;
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_PAYOUT_FILE.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_PAYOUT_FILE_test.csv
 
 
 ftp_upload()
@@ -530,7 +528,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_MP_PAYOUT_FILE.csv
+put AXIS_NODAL_MP_PAYOUT_FILE_test.csv
 
 bye
 EOF
@@ -597,7 +595,7 @@ where sw.merchant_id = m.mid
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_NMP_PAYOUT_FILE.csv
+        );"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_NMP_PAYOUT_FILE_test.csv
 
 
 ftp_upload()
@@ -619,7 +617,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_NMP_PAYOUT_FILE.csv
+put AXIS_NODAL_NMP_PAYOUT_FILE_test.csv
 
 bye
 EOF
@@ -764,7 +762,7 @@ where (
                         where power_access_file = 1
                 )
         )
-order by 1;"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_NMP_WORKING_FILE.csv
+order by 1;"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_NMP_WORKING_FILE_test.csv
 
 
 
@@ -793,7 +791,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_NMP_WORKING_FILE.csv
+put AXIS_NODAL_NMP_WORKING_FILE_test.csv
 
 bye
 EOF
@@ -1360,7 +1358,7 @@ HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
        AND refund_batch_id IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
                                WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_WORKING_FILE.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_WORKING_FILE_test.csv
 
 
 }
@@ -1397,4 +1395,3 @@ EOF
 ftp_upload
 
 bash -xf /var/scripts/check_emptyfiles_New.sh >> /tmp/cronlogs/check_emptyfiles.log
-
