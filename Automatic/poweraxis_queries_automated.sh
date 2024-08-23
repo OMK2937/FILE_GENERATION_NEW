@@ -22,33 +22,33 @@ echo "select 'txp' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
 from mobinew.txp
-UNION 
+UNION
 select 'txpmarketplace' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
 from mobinew.txpmarketplace
-UNION 
+UNION
 select 'txc' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         'NA' AS MAX_UPDATEDAT
 from mobinew.txc
-UNION 
+UNION
 select 'txcmarketplace' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         'NA' AS MAX_UPDATEDAT
 from mobinew.txcmarketplace
-UNION 
+UNION
 select 'wallet_as_pg_ledger' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
 	MAX(UPDATEDAT) AS MAX_UPDATEDAT
-from mobinew.wallet_as_pg_ledger 
-UNION 
+from mobinew.wallet_as_pg_ledger
+UNION
 select 'wallet_as_pg_ledger_metadata' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
 from mobinew.wallet_as_pg_ledger_metadata;
 
-"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/Tables_timestamp_data.csv
+"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/Tables_timestamp_data_test.csv
 
 
 echo "select (
@@ -107,7 +107,7 @@ where ks.merchant_id = m.mid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_PAYOUT_FILE.csv
+"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_PAYOUT_FILE_test.csv
 
 
 #AXIS ESCROW MP PAYOUT FILE | Merchant
@@ -161,7 +161,7 @@ where ks.merchant_id = m.mid
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE.csv
+        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_test.csv
 
 
 
@@ -216,7 +216,7 @@ where ks.merchant_id = m.smid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_test.csv
 
 
 
@@ -325,7 +325,7 @@ where sw.merchant_id = s.smid
         )
         and s.splittype = 0
         and s.enabledForCombinedPayout = 1
-        and sw.status = 'automated_success' OR sw.status = 'automated_failure' OR sw.status = 'automated_pending' 
+        and sw.status = 'automated_success' OR sw.status = 'automated_failure' OR sw.status = 'automated_pending'
         and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
         and m.mid = s.parentmid
         and sw.merchant_id in (
@@ -393,7 +393,7 @@ where sw.merchant_id = m.mid
         )
 group by s.parentmid,
         batch_id;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE_test.csv
 
 
 
@@ -525,7 +525,7 @@ where (
                 )
         )
 order by 1;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 
 #AXIS NODAL NMP PAYOUT FILE
@@ -585,7 +585,7 @@ where sw.merchant_id = m.mid and sw.status = 'automated_success' OR sw.status = 
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_PAYOUT_FILE.csv
+        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_PAYOUT_FILE_test.csv
 
 
 #AXIS NODAL NMP WORKING FILE
@@ -724,7 +724,7 @@ where (
                         where power_access_file = 1
                 )
         )
-order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_WORKING_FILE.csv
+order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_WORKING_FILE_test.csv
 
 
 
@@ -805,7 +805,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' 
+      and status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending'
   ) and t.statecode between 28 and 68
 UNION ALL
 select
@@ -1316,7 +1316,7 @@ where
     where
       created_at >= curdate()
       and status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending') and t.statecode between 28 and 68;
-"|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE.csv
+"|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE_test.csv
 
 }
 
@@ -1411,7 +1411,7 @@ FROM   txp t force index(updatedat)
               ON ( t.orderid = w.orderid
                    AND t.mid = w.mid
                    AND w.statecode IN ( 28, 38 ) )
-       LEFT JOIN wallet_as_pg_ledger_metadata wm 
+       LEFT JOIN wallet_as_pg_ledger_metadata wm
               ON ( w.id = wm.parentid )
 WHERE  w.settlementdate >= Date(Now())
        AND w.updatedat >= Date(Now())
@@ -1485,7 +1485,7 @@ WHERE  w.settlementdate >= Date(Now())
        AND partnertdr IN ( 1, 2 )
        AND t.mid NOT IN ( 'MBK5778' )
 	   AND t.statecode between 28 and 68 and t.updatedat>date(now())  AND w.refundbatchid IN (SELECT DISTINCT( batch_id )
-                               FROM   kotak_settlement 
+                               FROM   kotak_settlement
                                WHERE status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 
 UNION ALL
@@ -1552,7 +1552,7 @@ WHERE  c.createdat >= Date(Now())
        AND partnertdr = 1
        AND t.mid NOT IN ( 'MBK5778' )
        AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
-                               FROM   kotak_settlement 
+                               FROM   kotak_settlement
                                WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
         and t.statecode between 28 and 68
 		and w.updatedat>date(now())
@@ -1747,7 +1747,7 @@ WHERE  c.createdat >= Date(Now())
 	   and t.updatedat>date(now())
        AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate()) 
+                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1905,10 +1905,10 @@ HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
                                FROM   merchant_settlement_request
                                WHERE  created_at >= Curdate())
        AND refund_batch_id IN (SELECT DISTINCT( batch_id )
-                               FROM   kotak_settlement --changed
+                               FROM   kotak_settlement
                                WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE.csv
-       
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE_test.csv
+
 
 }
 
@@ -1941,8 +1941,3 @@ EOF
 }
 
 ftp_upload
-
-
-
-
-
