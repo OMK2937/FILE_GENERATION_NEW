@@ -3,7 +3,7 @@ MYSQL=/usr/bin/mysql
 DB=mobinew
 CURRENTDATE=`date "+%Y-%m-%d"`
 TIMESTAMP=`date "+%Y-%m-%d %H-%M-%S"`
-COMPRESSDIR=/tmp/cronreports/Payment_Benificiary_ICICI_MBK_Non_marketplace_${CURRENTDATE}
+COMPRESSDIR=/tmp/cronreports/Payment_Benificiary_ICICI_MBK_Non_marketplace_test_${CURRENTDATE}
 mkdir -p ${COMPRESSDIR}
 FILEDATE=`date "+%d-%m-%Y"`
 DATE1DBEFORE=`date --date="1 days ago" "+%Y-%m-%d"`
@@ -23,28 +23,31 @@ m.enc_accNo AS 'Account No.', m.enc_ifsc AS 'IFSC Code' , xtraInvestedAmount AS 
 '' AS 'On Demand Request Id',
 (select COALESCE(sum(pal.amount_adjusted),0.0) from payout_adjustment_ledger pal where sw.id = pal.settlement_id and pal.settlement_type=1) AS 'Loan Deduction'
 from settlement_wapg sw, merchant m
-where sw.merchant_id = m.mid and sw.created_at>=date(now())
+where sw.merchant_id = m.mid and sw.created_at>=date(now()) and sw.status = 'calculated'
 and sw.id and sw.merchant_id in (select mid from icici_payout_merchants where isPayoutEnabled=1)
 and batch_id like concat('%',date_format(now(),'%Y%m%d'),'%')
- and (ismarketplace is null or ismarketplace!='y') and status='calculated' and sw.id not in (
+ and (ismarketplace is null or ismarketplace!='y') and sw.id not in (
  SELECT req.settlement_id FROM
 merchant_settlement_request_metadata req LEFT JOIN merchant_settlement_request od ON
 req.request_id = od.id LEFT JOIN settlement_wapg wapg ON
 ( req.settlement_id = wapg.id AND req.settlement_type = 1 )
 WHERE od.created_at >= curdate() and req.settlement_type !=2 )";
-echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> ${COMPRESSDIR}/Payment_Benificiary_ICICI_MBK_Non_marketplace_$CURRENTDATE.csv
-cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_${CURRENTDATE}.tar.gz Payment_Benificiary_ICICI_MBK_Non_marketplace_${CURRENTDATE}
+echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> ${COMPRESSDIR}/Payment_Benificiary_ICICI_MBK_Non_marketplace_test_$CURRENTDATE.csv
+cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_test_${CURRENTDATE}.tar.gz Payment_Benificiary_ICICI_MBK_Non_marketplace_test_${CURRENTDATE}
 
 cd /tmp/cronreports/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-cd makepayoutfile_wapg_report
+mkdir ManualTest
+cd ManualTest
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt
 binary
 hash
-put Payment_Benificiary_ICICI_MBK_Non_marketplace_${CURRENTDATE}.tar.gz
+put Payment_Benificiary_ICICI_MBK_Non_marketplace_test_${CURRENTDATE}.tar.gz
 bye
 End
 
@@ -63,8 +66,8 @@ select wapg.mid,wapg.smid,wapg.orderid,wapg.createdat as txntime,wapg.txnamount 
 mtmd.ext_ref_no AS 'External_Refrence_Number'  from wallet_as_pg_ledger wapg left join wallet_as_pg_ledger_metadata wapgm on (wapg.id=wapgm.parentid)
  left join txp t on (t.orderid=wapg.orderid and t.statecode between 28 and 68)
  left join merchant_txp_meta_data mtmd on (t.id=mtmd.parent_id)
- left join merchant on (wapg.mid=merchant.mid )  where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and  wapg.updatedat >= DATE(now()) and wapg.refundbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and wapg.refundbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and status ='calculated') order by 1"  | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_$CURRENTDATE.csv
-gzip  /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_$CURRENTDATE.csv
+ left join merchant on (wapg.mid=merchant.mid )  where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and  wapg.updatedat >= DATE(now()) and wapg.refundbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and wapg.refundbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and status ='calculated') order by 1"  | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_test_$CURRENTDATE.csv
+gzip  /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_test_$CURRENTDATE.csv
 cd /tmp/cronreports/
 TIMESTAMP=`date "+%Y-%m-%d %H-%M-%S"`
 echo "Count of merchants" |  mail -s "Payout Generated for WAPG Payout |  Non-Marketplace Merchants |  ICICI Bank | $TIMESTAMP" noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
@@ -74,11 +77,15 @@ echo "Count of merchants" |  mail -s "Payout Generated for WAPG Payout |  Non-Ma
 cd /tmp/cronreports/working/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-cd makepayoutfile_wapg_report
-cd  $CURRENTDATE
+mkdir ManualTest
+cd ManualTest
+mkdir ICICI_Test
+cd ICICI_Test
+mkdir $CURRENTDATE
+cd $CURRENTDATE
 prompt
 binary
 hash
-put WAPG_ICICI_Working_file_Non_Mplace_$CURRENTDATE.csv.gz
+put WAPG_ICICI_Working_file_Non_Mplace_test_$CURRENTDATE.csv.gz
 bye
 End
