@@ -107,7 +107,7 @@ where ks.merchant_id = m.mid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_PAYOUT_FILE.csv
+"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_PAYOUT_FILE_test.csv
 
 
 #AXIS ESCROW MP PAYOUT FILE | Merchant
@@ -161,7 +161,7 @@ where ks.merchant_id = m.mid
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE.csv
+        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_test.csv
 
 
 
@@ -216,7 +216,7 @@ where ks.merchant_id = m.smid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_test.csv
 
 
 
@@ -393,7 +393,7 @@ where sw.merchant_id = m.mid
         )
 group by s.parentmid,
         batch_id;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE_test.csv
 
 
 
@@ -525,7 +525,7 @@ where (
                 )
         )
 order by 1;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 
 #AXIS NODAL NMP PAYOUT FILE
@@ -585,7 +585,7 @@ where sw.merchant_id = m.mid and and sw.status ='calculated'
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_PAYOUT_FILE.csv
+        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_PAYOUT_FILE_test.csv
 
 
 #AXIS NODAL NMP WORKING FILE
@@ -724,7 +724,7 @@ where (
                         where power_access_file = 1
                 )
         )
-order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_WORKING_FILE.csv
+order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_WORKING_FILE_test.csv
 
 
 
@@ -1316,7 +1316,7 @@ where
     where
       created_at >= curdate()
       and status = 'calculated') and t.statecode between 28 and 68 ; 
-"|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE.csv
+"|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE_test.csv
 
 }
 
@@ -1905,7 +1905,7 @@ HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
        AND refund_batch_id IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement 
                                WHERE  status = 'calculated' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE_test.csv
        
 
 }

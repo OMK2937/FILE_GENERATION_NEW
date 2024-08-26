@@ -13,8 +13,6 @@ Queries()
 #AXIS NODAL NMP WORKING FILE
 ##AXIS ESCROW NMP WORKING FILE
 
-
-
 query="select 'txp' as Table_name,
         MAX(CREATEDAT) AS MAX_CREATEDAT,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
@@ -1386,7 +1384,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_NMP_WORKING_FILE.csv
+put AXIS_ESCROW_NMP_WORKING_FILE_test.csv
 
 bye
 EOF
