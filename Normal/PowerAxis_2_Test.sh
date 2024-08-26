@@ -133,7 +133,7 @@ where (
                 )
         )
 order by 1;
-"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE.csv
+"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 
 }
@@ -149,7 +149,7 @@ user Merchants hwMzZUhtRolr
 pass
 passive
 mkdir ManualTest
-cd ManaulTest
+cd ManualTest
 mkdir PowerAxisSRE_Test
 cd PowerAxisSRE_Test
 mkdir $todayis
@@ -158,7 +158,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_MP_WORKING_FILE.csv
+put AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 bye
 EOF
