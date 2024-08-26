@@ -771,7 +771,7 @@ user Merchants hwMzZUhtRolr
 pass
 passive
 mkdir ManualTest
-cd ManaulTest
+cd ManualTest
 mkdir PowerAxisSRE_Test
 cd PowerAxisSRE_Test
 mkdir $todayis
