@@ -38,10 +38,10 @@ cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_
 cd /tmp/cronreports/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-mkdir Automated
-cd Automated
-mkdir ICICI
-cd ICICI
+mkdir Automated_Test
+cd Automated_Test
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt
@@ -77,10 +77,10 @@ echo "Count of merchants" |  mail -s "Payout Generated for WAPG Payout |  Non-Ma
 cd /tmp/cronreports/working/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-mkdir Automated
-cd Automated
-mkdir ICICI
-cd ICICI
+mkdir Automated_Test
+cd Automated_Test
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt

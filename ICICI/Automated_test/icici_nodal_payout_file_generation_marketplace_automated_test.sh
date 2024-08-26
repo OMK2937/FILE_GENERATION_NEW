@@ -30,10 +30,10 @@ cd /tmp/cronreports/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
 passive
-mkdir Automated
-cd Automated
-mkdir ICICI
-cd ICICI
+mkdir Automated_Test
+cd Automated_Test
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt
@@ -66,10 +66,10 @@ cd /tmp/cronreports/working/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
 passive
-mkdir Automated
-cd Automated
-mkdir ICICI
-cd ICICI
+mkdir Automated_Test
+cd Automated_Test
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt
