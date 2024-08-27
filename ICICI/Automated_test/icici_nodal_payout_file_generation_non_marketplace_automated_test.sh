@@ -38,10 +38,10 @@ cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_
 cd /tmp/cronreports/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-mkdir Automated
-cd Automated
-mkdir ICICI
-cd ICICI
+mkdir Automated_Test
+cd Automated_Test
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt
@@ -59,14 +59,14 @@ mtmd.ext_ref_no as 'External_Refrence_Number'
    left join txp t on (t.orderid=wapg.orderid and t.statecode between 28 and 68)
    left join merchant_txp_meta_data mtmd on (t.id=mtmd.parent_id and t.statecode between 28 and 68)
    left join wallet_as_pg_ledger_metadata wapgm on (wapg.id=wapgm.parentid)
-   left join merchant on (wapg.mid=merchant.mid ) where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not  NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and wapg.updatedat >= DATE(now()) and wapg.payoutbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and  wapg.payoutbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and (status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) )
+   left join merchant on (wapg.mid=merchant.mid ) where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not  NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and wapg.updatedat >= DATE(now()) and wapg.payoutbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and  wapg.payoutbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and (status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure'))
 union all
 select wapg.mid,wapg.smid,wapg.orderid,wapg.createdat as txntime,wapg.txnamount as amount,wapg.txnamount, -wapg.txnamount as settlement_amount,date_format(now(),'%Y-%m-%d') as settlement_date, wapg.refundbatchid as settlement_batch,'debit' as type, wapg.wallettxnamount as walletAmount,wapg.pgtxnamount as PgTxnAmount,case when wapgm.paymentType ='1' then 'UPI' when wapgm.paymentType in ('2','3') then 'ZIP' else 'WAPG' end as 'TxnMode' , cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
 (cASe when payment_instrument='0' then 'Wallet' when payment_instrument='1' then 'WALLET_AND_PG' when payment_instrument='2' then 'PG' when payment_instrument='3' then 'PAYLATER' when payment_instrument='4' then 'ZIP_AND_WALLET' when payment_instrument='5' then 'ZIP_EMI' when payment_instrument='6' then 'UPI' when payment_instrument='7' then 'CC' when payment_instrument='8' then 'DC' when payment_instrument='9' then 'CC_DC' when payment_instrument='10' then 'UPI_COLLECT' when payment_instrument='11' then 'EMANDATE' when payment_instrument='12' then 'NET_BANKING' else null end) AS Payment_Instrument,
 mtmd.ext_ref_no AS 'External_Refrence_Number'  from wallet_as_pg_ledger wapg left join wallet_as_pg_ledger_metadata wapgm on (wapg.id=wapgm.parentid)
  left join txp t on (t.orderid=wapg.orderid and t.statecode between 28 and 68)
  left join merchant_txp_meta_data mtmd on (t.id=mtmd.parent_id)
- left join merchant on (wapg.mid=merchant.mid )  where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and  wapg.updatedat >= DATE(now()) and wapg.refundbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and wapg.refundbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and (status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) ) order by 1"  | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv
+ left join merchant on (wapg.mid=merchant.mid )  where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and  wapg.updatedat >= DATE(now()) and wapg.refundbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and wapg.refundbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and (status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) order by 1"  | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv
 gzip  /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv
 cd /tmp/cronreports/
 TIMESTAMP=`date "+%Y-%m-%d %H-%M-%S"`
@@ -77,10 +77,10 @@ echo "Count of merchants" |  mail -s "Payout Generated for WAPG Payout |  Non-Ma
 cd /tmp/cronreports/working/
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-mkdir Automated
-cd Automated
-mkdir ICICI
-cd ICICI
+mkdir Automated_Test
+cd Automated_Test
+mkdir ICICI_Test
+cd ICICI_Test
 mkdir $CURRENTDATE
 cd $CURRENTDATE
 prompt
