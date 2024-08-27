@@ -632,7 +632,7 @@ bye
 EOF
 }
 
-#ftp_upload
+ftp_upload
 
 echo -e " \nFTP Function completed successfully.\n"
 date

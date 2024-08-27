@@ -616,10 +616,10 @@ pass
 passive
 mkdir Automated_Test
 cd Automated_Test
-mkdir PowerAxis_Automated
-cd PowerAxis_Automated
-mkdir PowerAxisSRE_Automated
-cd PowerAxisSRE_Automated
+mkdir PowerAxis_Automated_test
+cd PowerAxis_Automated_test
+mkdir PowerAxisSRE_Automated_test
+cd PowerAxisSRE_Automated_test
 mkdir $todayis
 cd $todayis
 prompt
@@ -632,7 +632,7 @@ bye
 EOF
 }
 
-#ftp_upload
+ftp_upload
 
 echo -e " \nFTP Function completed successfully.\n"
 date

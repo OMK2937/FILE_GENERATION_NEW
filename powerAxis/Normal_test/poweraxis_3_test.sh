@@ -83,7 +83,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   ) and t.statecode between 28 and 68
 UNION ALL
 select
@@ -178,7 +178,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     t.parentmid in (
@@ -289,7 +289,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     tx.parentmid in (
@@ -393,7 +393,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     t.parentmid in (
@@ -498,7 +498,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     t.parentmid in (
@@ -593,7 +593,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) and t.statecode between 28 and 68;
+      and status = 'calculated') and t.statecode between 28 and 68;
 "| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
 
 
@@ -614,12 +614,10 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
-mkdir PowerAxis_Automated
-cd PowerAxis_Automated
-mkdir PowerAxisSRE_Automated
-cd PowerAxisSRE_Automated
+mkdir ManualTest
+cd ManualTest
+mkdir PowerAxisSRE_Test
+cd PowerAxisSRE_Test
 mkdir $todayis
 cd $todayis
 prompt
@@ -632,7 +630,7 @@ bye
 EOF
 }
 
-#ftp_upload
+ftp_upload
 
 echo -e " \nFTP Function completed successfully.\n"
 date

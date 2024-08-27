@@ -54,7 +54,7 @@ where (
         and payoutbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') AND created_at >= curdate()
+                where status = 'calculated' and created_at >= curdate()
         )
         and (
                 wapg.mid in (
@@ -118,7 +118,7 @@ where (
         and refundbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= curdate()
+                where status = 'calculated' and created_at >= curdate() 
         )
         and (
                 wapg.mid in (
@@ -148,12 +148,10 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
-mkdir PowerAxis_Automated
-cd PowerAxis_Automated
-mkdir PowerAxisSRE_Automated
-cd PowerAxisSRE_Automated
+mkdir ManualTest
+cd ManualTest
+mkdir PowerAxisSRE_Test
+cd PowerAxisSRE_Test
 mkdir $todayis
 cd $todayis
 prompt

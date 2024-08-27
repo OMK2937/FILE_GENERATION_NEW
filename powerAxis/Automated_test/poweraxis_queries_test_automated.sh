@@ -1328,10 +1328,10 @@ pass
 passive
 mkdir Automated_Test
 cd Automated_Test
-mkdir PowerAxis_Automated
-cd Poweraxis_Automated
-mkdir PowerAxisAN_Automated
-cd PowerAxisAN_Automated
+mkdir PowerAxis_Automated_test
+cd PowerAxis_Automated_test
+mkdir PowerAxisAN_Automated_test
+cd PowerAxisAN_Automated_test
 mkdir $todayis
 cd $todayis
 prompt
@@ -1921,10 +1921,10 @@ pass
 passive
 mkdir Automated_Test
 cd Automated_Test
-mkdir PowerAxis_Automated
-cd Poweraxis_Automated
-mkdir PowerAxisAN_Automated
-cd PowerAxisAN_Automated
+mkdir PowerAxis_Automated_test
+cd PowerAxis_Automated_test
+mkdir PowerAxisAN_Automated_test
+cd PowerAxisAN_Automated_test
 mkdir $todayis
 cd $todayis
 prompt

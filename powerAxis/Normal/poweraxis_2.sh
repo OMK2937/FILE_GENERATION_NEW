@@ -54,7 +54,7 @@ where (
         and payoutbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') AND created_at >= curdate()
+                where status = 'calculated' and created_at >= curdate()
         )
         and (
                 wapg.mid in (
@@ -118,7 +118,7 @@ where (
         and refundbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= curdate()
+                where status = 'calculated' and created_at >= curdate() 
         )
         and (
                 wapg.mid in (
@@ -133,7 +133,7 @@ where (
                 )
         )
 order by 1;
-"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE_test.csv
+"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE.csv
 
 
 }
@@ -148,19 +148,15 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
-mkdir PowerAxis_Automated
-cd PowerAxis_Automated
-mkdir PowerAxisSRE_Automated
-cd PowerAxisSRE_Automated
+mkdir Power_Axis_Payout_New
+cd Power_Axis_Payout_New
 mkdir $todayis
 cd $todayis
 prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_MP_WORKING_FILE_test.csv
+put AXIS_NODAL_MP_WORKING_FILE.csv
 
 bye
 EOF

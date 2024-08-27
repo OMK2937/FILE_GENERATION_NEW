@@ -43,7 +43,7 @@ select 'wallet_as_pg_ledger_metadata' as Table_name,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
 from mobinew.wallet_as_pg_ledger_metadata ";
 
-echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/Tables_timestamp_data_test.csv
+echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/Tables_timestamp_data_automated_test.csv
 
 
 ftp_upload()
@@ -65,7 +65,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put Tables_timestamp_data_test.csv
+put Tables_timestamp_data_automated_test.csv
 
 bye
 EOF
@@ -117,7 +117,7 @@ from kotak_settlement ks,
 where ks.merchant_id = m.mid
         and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
         and isXtraInvestmentMerchant = 0
-        and ks.status = 'automated_success' OR ks.status = 'automated_failure' OR ks.status = 'automated_pending'
+        and ks.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and (
                 ismarketplace is null
                 or ismarketplace != 'y'
@@ -133,7 +133,7 @@ where ks.merchant_id = m.mid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_PAYOUT_FILE_test.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_PAYOUT_FILE_automated_test.csv
 
 ftp_upload()
 {
@@ -154,7 +154,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_NMP_PAYOUT_FILE_test.csv
+put AXIS_ESCROW_NMP_PAYOUT_FILE_automated_test.csv
 
 bye
 EOF
@@ -207,7 +207,7 @@ from kotak_settlement ks,
         merchant m
 where ks.merchant_id = m.mid
         and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
-        and ks.status = 'automated_success' OR ks.status = 'automated_failure' OR ks.status = 'automated_pending'
+        and ks.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and isXtraInvestmentMerchant = 0
         and (ismarketplace = 'y')
         and txn_date = date_format(now(), '%d/%m/%Y')
@@ -215,7 +215,7 @@ where ks.merchant_id = m.mid
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_test.csv
+        );"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_automated_test.csv
 
 
 ftp_upload()
@@ -237,7 +237,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_test.csv
+put AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_automated_test.csv
 
 bye
 EOF
@@ -291,7 +291,7 @@ from kotak_settlement ks,
         submerchant m
 where ks.merchant_id = m.smid
         and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
-        and ks.status = 'automated_success' OR ks.status = 'automated_failure' OR ks.status = 'automated_pending'
+        and ks.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and isXtraInvestmentMerchant = 0
         and txn_date = date_format(now(), '%d/%m/%Y')
         and smid in (
@@ -299,7 +299,7 @@ where ks.merchant_id = m.smid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_test.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_automated_test.csv
 
 ftp_upload()
 {
@@ -320,7 +320,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_test.csv
+put AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_automated_test.csv
 
 bye
 EOF
@@ -382,7 +382,7 @@ where sw.merchant_id = m.smid
         and m.splittype = 0
         and m.enabledForCombinedPayout = 0
         and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
-        and sw.status = 'automated_success' OR sw.status = 'automated_failure' OR sw.status = 'automated_pending'
+        and sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and sw.merchant_id in (
                 select mid
                 from merchant_payout_config
@@ -438,7 +438,7 @@ where sw.merchant_id = s.smid
         and s.enabledForCombinedPayout = 1
         and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
         and m.mid = s.parentmid
-        and sw.status = 'automated_success' OR sw.status = 'automated_failure' OR sw.status = 'automated_pending'
+        and sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and sw.merchant_id in (
                 select mid
                 from merchant_payout_config
@@ -494,7 +494,7 @@ where sw.merchant_id = m.mid
         )
         and s.splittype = 5
         and sw.batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
-        and sw.status = 'automated_success' OR sw.status = 'automated_failure' OR sw.status = 'automated_pending'
+        and ks.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and m.mid = s.parentmid
         and ismarketplace = 'y'
         and sw.merchant_id in (
@@ -504,7 +504,7 @@ where sw.merchant_id = m.mid
         )
 group by s.parentmid,
         batch_id;
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_PAYOUT_FILE_test.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_PAYOUT_FILE_automated_test.csv
 
 
 ftp_upload()
@@ -526,7 +526,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_NODAL_MP_PAYOUT_FILE_test.csv
+put AXIS_NODAL_MP_PAYOUT_FILE_automated_test.csv
 
 bye
 EOF
@@ -584,7 +584,7 @@ where sw.merchant_id = m.mid
                 from icici_payout_merchants
                 where isPayoutEnabled = 1
         )
-        and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%') and sw.status = 'automated_success' OR sw.status = 'automated_failure' OR sw.status = 'automated_pending'
+        and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%') and  sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and (
                 ismarketplace is null
                 or ismarketplace != 'y'
@@ -679,7 +679,7 @@ where (
         and payoutbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= curdate()
+                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= curdate()
         )
         and (
                 wapg.mid in (
@@ -746,7 +746,7 @@ where (
         and refundbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= curdate() --changed
+                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= curdate() --changed
         )
         and (
                 wapg.mid in (
@@ -870,7 +870,7 @@ WHERE  w.settlementdate >= Date(Now())
        AND t.mid NOT IN ( 'MBK5778' )
        AND t.statecode between 28 and 68 and t.updatedat>=date(now()) AND w.payoutbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and  created_at >= Curdate() )) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
+                               WHERE status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and  created_at >= Curdate() )) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
        t.orderid               'ORDER_ID',
@@ -935,7 +935,7 @@ WHERE  w.settlementdate >= Date(Now())
        AND t.mid NOT IN ( 'MBK5778' )
 	   AND t.statecode between 28 and 68 and t.updatedat>date(now())  AND w.refundbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
+                               WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate())) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1002,7 +1002,7 @@ WHERE  c.createdat >= Date(Now())
        AND t.mid NOT IN ( 'MBK5778' )
        AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
+                               WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate())
         and t.statecode between 28 and 68
 		and w.updatedat>date(now())
         and t.updatedat>date(now())	) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
@@ -1076,7 +1076,7 @@ WHERE  c.createdat >= Date(Now())
                                    WHERE  created_at >= Curdate())
        AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
+                               WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1131,7 +1131,7 @@ WHERE  c.createdat >= Date(Now())
 	   and t.updatedat>date(now())
        AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
+                               WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate())
                                ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 
 UNION ALL
@@ -1196,7 +1196,7 @@ WHERE  c.createdat >= Date(Now())
 	   and t.updatedat>date(now())
        AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
+                               WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1274,7 +1274,8 @@ WHERE  c.createdat >= Date(Now())
 	   and w.updatedat>date(now())
        AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate())
+                               WHERE
+                               status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate())
                                ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1355,8 +1356,8 @@ HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
                                WHERE  created_at >= Curdate())
        AND refund_batch_id IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
-                               WHERE  status = 'automated_success' OR status = 'automated_failure' OR status = 'automated_pending' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_WORKING_FILE_test.csv
+                               WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_WORKING_FILE_automated_test.csv
 
 
 }
@@ -1384,7 +1385,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCROW_NMP_WORKING_FILE_test.csv
+put AXIS_ESCROW_NMP_WORKING_FILE_automated_test.csv
 
 bye
 EOF

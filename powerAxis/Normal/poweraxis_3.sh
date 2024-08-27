@@ -83,7 +83,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   ) and t.statecode between 28 and 68
 UNION ALL
 select
@@ -178,7 +178,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     t.parentmid in (
@@ -289,7 +289,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     tx.parentmid in (
@@ -393,7 +393,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     t.parentmid in (
@@ -498,7 +498,7 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+      and status = 'calculated'
   )
   and (
     t.parentmid in (
@@ -593,8 +593,8 @@ where
       kotak_settlement
     where
       created_at >= curdate()
-      and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) and t.statecode between 28 and 68;
-"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
+      and status = 'calculated') and t.statecode between 28 and 68;
+"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE.csv
 
 
 
@@ -603,7 +603,7 @@ where
 Queries
 
 echo -e "\nBefore executing the FTP Function..\n"
-ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
+ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE.csv
 date
 echo -e "\n\n"
 
@@ -614,25 +614,21 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
-mkdir PowerAxis_Automated
-cd PowerAxis_Automated
-mkdir PowerAxisSRE_Automated
-cd PowerAxisSRE_Automated
+mkdir Power_Axis_Payout_New
+cd Power_Axis_Payout_New
 mkdir $todayis
 cd $todayis
 prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCORW_MP_WORKING_FILE_test.csv
+put AXIS_ESCORW_MP_WORKING_FILE.csv
 
 bye
 EOF
 }
 
-#ftp_upload
+ftp_upload
 
 echo -e " \nFTP Function completed successfully.\n"
 date

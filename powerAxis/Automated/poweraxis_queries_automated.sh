@@ -44,7 +44,7 @@ select 'wallet_as_pg_ledger_metadata' as Table_name,
         MAX(UPDATEDAT) AS MAX_UPDATEDAT
 from mobinew.wallet_as_pg_ledger_metadata;
 
-"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/Tables_timestamp_data_automated_test.csv
+"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/Tables_timestamp_data_automated.csv
 
 
 echo "select (
@@ -103,7 +103,7 @@ where ks.merchant_id = m.mid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_PAYOUT_FILE_automated_test.csv
+"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_PAYOUT_FILE_automated.csv
 
 
 #AXIS ESCROW MP PAYOUT FILE | Merchant
@@ -157,7 +157,7 @@ where ks.merchant_id = m.mid
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_automated_test.csv
+        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_MERCHANT_PAYOUT_FILE_automated.csv
 
 
 
@@ -212,7 +212,7 @@ where ks.merchant_id = m.smid
                 from merchant_payout_config
                 where power_access_file = 1
         );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_automated_test.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_MP_SUBMERCHANT_PAYOUT_FILE_automated.csv
 
 
 
@@ -389,7 +389,7 @@ where sw.merchant_id = m.mid
         )
 group by s.parentmid,
         batch_id;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE_automated_test.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE_automated.csv
 
 
 
@@ -521,7 +521,7 @@ where (
                 )
         )
 order by 1;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE_automated_test.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE_automated.csv
 
 
 #AXIS NODAL NMP PAYOUT FILE
@@ -581,7 +581,7 @@ where sw.merchant_id = m.mid and sw.status IN ('automated_success', 'automated_f
                 select mid
                 from merchant_payout_config
                 where power_access_file = 1
-        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_PAYOUT_FILE_test.csv
+        );"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_PAYOUT_FILE_automated.csv
 
 
 #AXIS NODAL NMP WORKING FILE
@@ -720,7 +720,7 @@ where (
                         where power_access_file = 1
                 )
         )
-order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_WORKING_FILE_test.csv
+order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_NMP_WORKING_FILE_automated.csv
 
 
 
@@ -1312,7 +1312,7 @@ where
     where
       created_at >= curdate()
       and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and t.statecode between 28 and 68;
-"|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE_test.csv
+"|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE_automated.csv
 
 }
 
@@ -1329,7 +1329,7 @@ passive
 mkdir Automated_Test
 cd Automated_Test
 mkdir PowerAxis_Automated
-cd Poweraxis_Automated
+cd PowerAxis_Automated
 mkdir PowerAxisAN_Automated
 cd PowerAxisAN_Automated
 mkdir $todayis
@@ -1903,7 +1903,7 @@ HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
        AND refund_batch_id IN (SELECT DISTINCT( batch_id )
                                FROM   kotak_settlement
                                WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE_test.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE_automated.csv
 
 
 }
@@ -1919,10 +1919,10 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
-cd Poweraxis_Automated
+cd PowerAxis_Automated
 mkdir PowerAxisAN_Automated
 cd PowerAxisAN_Automated
 mkdir $todayis
