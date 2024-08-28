@@ -389,7 +389,7 @@ where sw.merchant_id = m.mid
         )
 group by s.parentmid,
         batch_id;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE_automated_test.csv
+"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_PAYOUT_FILE_test.csv
 
 
 
