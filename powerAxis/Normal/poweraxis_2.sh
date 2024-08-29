@@ -54,7 +54,7 @@ where (
         and payoutbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status = 'calculated' and created_at >= curdate()
+                where created_at >= curdate() and status = 'calculated'
         )
         and (
                 wapg.mid in (
@@ -118,7 +118,7 @@ where (
         and refundbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status = 'calculated' and created_at >= curdate() 
+                where created_at >= curdate()  and  status = 'calculated'
         )
         and (
                 wapg.mid in (

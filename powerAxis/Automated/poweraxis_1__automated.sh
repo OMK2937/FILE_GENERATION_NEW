@@ -746,7 +746,7 @@ where (
         and refundbatchid in (
                 select distinct(batch_id)
                 from settlement_wapg
-                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= curdate() --changed
+                where status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= curdate()
         )
         and (
                 wapg.mid in (
