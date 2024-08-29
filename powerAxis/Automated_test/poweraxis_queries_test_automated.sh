@@ -555,7 +555,174 @@ select (
         m.enc_accNo as 'Account No.',
         m.enc_ifsc as 'IFSC Code',
         xtraInvestedAmount as 'XTRA INVESTMENT',
-        'AXIS_NODAL' as 'Bank type',
+        'select (
+        CASE
+                WHEN EXISTS(
+                SELECT 1
+                FROM bank_holidays
+                WHERE bank_holidays.date = curdate()
+OR DAYNAME(curdate()) = 'Sunday'
+OR (
+        DAYNAME(curdate()) = 'Saturday'
+AND FLOOR((DAYOFMONTH(curdate()) + 6) / 7) IN (2, 4)
+                                        )
+                                                ) then 'I' else 'N'
+end
+        ) AS 'Record Identifier',
+merchant_id AS 'Beneficiary Code',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Execution Date',
+amount AS 'Transaction amount',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Incoming Credit Date',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Transaction Intimation Date',
+batch_id AS 'Additional Info 3',
+        cASe
+when length(m.accHolderName) > 32 then trim(left(m.accHolderName, 32)) else m.accHolderName
+end AS 'Additional Info 4',
+m.accHolderName AS 'Account Name',
+m.enc_accNo AS 'Account No.',
+m.enc_ifsc AS 'IFSC Code',
+xtraInvestedAmount AS 'XTRA INVESTMENT',
+        'AXIS_NODAL' AS 'Bank type',
+batch_id AS 'Original Batch',
+        '' AS 'On Demand Request Id',
+        (
+select COALESCE(pal.amount_adjusted, 0.0)
+from payout_adjustment_ledger pal
+where sw.id = pal.settlement_id
+and pal.settlement_type = 1
+        ) AS 'Loan Deduction'
+from settlement_wapg sw,
+submerchant m
+where sw.merchant_id = m.smid
+and sw.merchant_id not in (
+        select mid
+                from icici_payout_merchants
+                        where isPayoutEnabled = 1
+)
+and m.splittype = 0
+and m.enabledForCombinedPayout = 0
+and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
+and sw.status  = 'automated_success'
+and sw.merchant_id in (
+        select mid
+                from merchant_payout_config
+                        where power_access_file = 1
+)
+union all
+select (
+        CASE
+                WHEN EXISTS(
+                SELECT 1
+                FROM bank_holidays
+                WHERE bank_holidays.date = curdate()
+OR DAYNAME(curdate()) = 'Sunday'
+OR (
+        DAYNAME(curdate()) = 'Saturday'
+AND FLOOR((DAYOFMONTH(curdate()) + 6) / 7) IN (2, 4)
+                                        )
+                                                ) then 'I' else 'N'
+end
+        ) AS 'Record Identifier',
+merchant_id AS 'Beneficiary Code',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Execution Date',
+amount AS 'Transaction amount',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Incoming Credit Date',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Transaction Intimation Date',
+batch_id AS 'Additional Info 3',
+        cASe
+when length(m.accHolderName) > 32 then trim(left(m.accHolderName, 32)) else m.accHolderName
+end AS 'Additional Info 4',
+m.accHolderName AS 'Account Name',
+m.enc_accNo AS 'Account No.',
+m.enc_ifsc AS 'IFSC Code',
+xtraInvestedAmount AS 'XTRA INVESTMENT',
+        'AXIS_NODAL' AS 'Bank type',
+batch_id AS 'Original Batch',
+        '' AS 'On Demand Request Id',
+        (
+select COALESCE(pal.amount_adjusted, 0.0)
+from payout_adjustment_ledger pal
+where sw.id = pal.settlement_id
+and pal.settlement_type = 1
+        ) AS 'Loan Deduction'
+from settlement_wapg sw,
+submerchant s,
+merchant m
+where sw.merchant_id = s.smid
+and sw.merchant_id not in (
+        select mid
+                from icici_payout_merchants
+                        where isPayoutEnabled = 1
+)
+and s.splittype = 0
+and s.enabledForCombinedPayout = 1
+and batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
+and m.mid = s.parentmid
+and sw.status  ='automated_success'
+and sw.merchant_id in (
+        select mid
+                from merchant_payout_config
+                        where power_access_file = 1
+)
+group by s.parentmid,
+batch_id
+union all
+select (
+        CASE
+                WHEN EXISTS(
+                SELECT 1
+                FROM bank_holidays
+                WHERE bank_holidays.date = curdate()
+OR DAYNAME(curdate()) = 'Sunday'
+OR (
+        DAYNAME(curdate()) = 'Saturday'
+AND FLOOR((DAYOFMONTH(curdate()) + 6) / 7) IN (2, 4)
+                                        )
+                                                ) then 'I' else 'N'
+end
+        ) AS 'Record Identifier',
+merchant_id AS 'Beneficiary Code',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Execution Date',
+amount AS 'Transaction amount',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Incoming Credit Date',
+DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y') AS 'Transaction Intimation Date',
+batch_id AS 'Additional Info 3',
+        cASe
+when length(m.accHolderName) > 32 then trim(left(m.accHolderName, 32)) else m.accHolderName
+end AS 'Additional Info 4',
+m.accHolderName AS 'Account Name',
+m.enc_accNo AS 'Account No.',
+m.enc_ifsc AS 'IFSC Code',
+xtraInvestedAmount AS 'XTRA INVESTMENT',
+        'AXIS_NODAL' AS 'Bank type',
+batch_id AS 'Original Batch',
+        '' AS 'On Demand Request Id',
+        (
+select COALESCE(pal.amount_adjusted, 0.0)
+from payout_adjustment_ledger pal
+where sw.id = pal.settlement_id
+and pal.settlement_type = 1
+        ) AS 'Loan Deduction'
+from settlement_wapg sw,
+submerchant s,
+merchant m
+where sw.merchant_id = m.mid
+and sw.merchant_id not in (
+        select mid
+                from icici_payout_merchants
+                        where isPayoutEnabled = 1
+)
+and s.splittype = 5
+and sw.batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
+and sw.status = 'automated_success'
+and m.mid = s.parentmid
+and ismarketplace = 'y'
+and sw.merchant_id in (
+        select mid
+                from merchant_payout_config
+                        where power_access_file = 1
+)
+group by s.parentmid,
         batch_id as 'Original Batch',
         '' as 'On Demand Request Id',
         (

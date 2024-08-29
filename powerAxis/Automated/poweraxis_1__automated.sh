@@ -494,7 +494,7 @@ where sw.merchant_id = m.mid
         )
         and s.splittype = 5
         and sw.batch_id like concat('%', date_format(now(), '%Y%m%d'), '%')
-        and ks.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
+        and sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')
         and m.mid = s.parentmid
         and ismarketplace = 'y'
         and sw.merchant_id in (
