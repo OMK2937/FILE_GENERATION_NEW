@@ -53,8 +53,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
@@ -142,8 +142,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
@@ -225,8 +225,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
@@ -308,8 +308,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
@@ -514,8 +514,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
@@ -603,8 +603,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
@@ -777,8 +777,8 @@ ftp -n -v 15.207.173.6 << EOF
 user Merchants hwMzZUhtRolr
 pass
 passive
-mkdir Automated_Test
-cd Automated_Test
+mkdir Automated
+cd Automated
 mkdir PowerAxis_Automated
 cd PowerAxis_Automated
 mkdir PowerAxisSRE_Automated
