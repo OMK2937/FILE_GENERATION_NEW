@@ -90,6 +90,6 @@ cd $CURRENTDATE
 prompt
 binary
 hash
-put WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv.gz
+put WAPG_ICICI_Working_file_Non_Mplace_automated_${CURRENTDATE}.csv.gz
 bye
 End
