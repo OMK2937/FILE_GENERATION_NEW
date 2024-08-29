@@ -133,7 +133,7 @@ where (
                 )
         )
 order by 1;
-"| mysql -u mobinewcronmstr01 -p'C@da5u#643' -h mbk-payout-replica.clztcamsjaiy.ap-south-1.rds.amazonaws.com -D mobinew -A -P 3308 | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE_test.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_WORKING_FILE_test.csv
 
 
 }
