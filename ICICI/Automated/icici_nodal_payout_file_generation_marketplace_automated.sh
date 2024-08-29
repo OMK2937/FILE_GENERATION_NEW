@@ -29,6 +29,7 @@ cd /tmp/cronreports/
 #ftp -n mbk-ftp.centralindia.cloudapp.azure.com << End
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
+pass
 passive
 mkdir Automated
 cd Automated
@@ -65,6 +66,7 @@ cd /tmp/cronreports/working/
 #ftp -n mbk-ftp.centralindia.cloudapp.azure.com << End
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
+pass
 passive
 mkdir Automated
 cd Automated
@@ -75,7 +77,7 @@ cd $CURRENTDATE
 prompt
 binary
 hash
-put WAPG_ICICI_Working_file_Mplace_automated_$CURRENTDATE.csv.gz
+put WAPG_ICICI_Working_file_Mplace_automated_${CURRENTDATE}.csv.gz
 bye
 End
 echo mail -s "File Generation Completed for ICICI Mplace | Marketplace Merchants | ICICI Bank | $TIMESTAMP" -r noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
