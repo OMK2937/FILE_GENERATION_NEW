@@ -3,7 +3,7 @@ MYSQL=/usr/bin/mysql
 DB=mobinew
 CURRENTDATE=`date "+%Y-%m-%d"`
 TIMESTAMP=`date "+%Y-%m-%d %H-%M-%S"`
-COMPRESSDIR=/tmp/cronreports/Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_${CURRENTDATE}
+COMPRESSDIR=/tmp/cronreports/Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_test_${CURRENTDATE}
 mkdir -p ${COMPRESSDIR}
 FILEDATE=`date "+%d-%m-%Y"`
 DATE1DBEFORE=`date --date="1 days ago" "+%Y-%m-%d"`
@@ -32,8 +32,8 @@ merchant_settlement_request_metadata req LEFT JOIN merchant_settlement_request o
 req.request_id = od.id LEFT JOIN settlement_wapg wapg ON
 ( req.settlement_id = wapg.id AND req.settlement_type = 1 )
 WHERE od.created_at >= curdate() and req.settlement_type !=2 )";
-echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> ${COMPRESSDIR}/Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_$CURRENTDATE.csv
-cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_${CURRENTDATE}.tar.gz Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_${CURRENTDATE}
+echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> ${COMPRESSDIR}/Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_test_$CURRENTDATE.csv
+cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_test_${CURRENTDATE}.tar.gz Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_test_${CURRENTDATE}
 
 cd /tmp/cronreports/
 ftp -n 15.207.173.6 << End
@@ -47,7 +47,7 @@ cd $CURRENTDATE
 prompt
 binary
 hash
-put Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_${CURRENTDATE}.tar.gz
+put Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_test_${CURRENTDATE}.tar.gz
 bye
 End
 
@@ -66,8 +66,8 @@ select wapg.mid,wapg.smid,wapg.orderid,wapg.createdat as txntime,wapg.txnamount 
 mtmd.ext_ref_no AS 'External_Refrence_Number'  from wallet_as_pg_ledger wapg left join wallet_as_pg_ledger_metadata wapgm on (wapg.id=wapgm.parentid)
  left join txp t on (t.orderid=wapg.orderid and t.statecode between 28 and 68)
  left join merchant_txp_meta_data mtmd on (t.id=mtmd.parent_id)
- left join merchant on (wapg.mid=merchant.mid )  where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and  wapg.updatedat >= DATE(now()) and wapg.refundbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and wapg.refundbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and (status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) ) order by 1"  | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv
-gzip  /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv
+ left join merchant on (wapg.mid=merchant.mid )  where (wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and if(wapg.smid is not NULL, wapg.smid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1),(wapg.mid  in (select mid from icici_payout_merchants  where isPayoutEnabled=1)))) and  wapg.updatedat >= DATE(now()) and wapg.refundbatchid like concat('%',date_format(now(),'%Y%m%d'),'%') and (ismarketplace !='y' or ismarketplace is null) and paymentType not in (2,3,4) and wapg.refundbatchid in (select distinct(batch_id) from settlement_wapg where created_at >= curdate() and (status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) ) order by 1"  | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_test_$CURRENTDATE.csv
+gzip  /tmp/cronreports/working/WAPG_ICICI_Working_file_Non_Mplace_automated_test_$CURRENTDATE.csv
 cd /tmp/cronreports/
 TIMESTAMP=`date "+%Y-%m-%d %H-%M-%S"`
 echo "Count of merchants" |  mail -s "Payout Generated for WAPG Payout |  Non-Marketplace Merchants |  ICICI Bank | $TIMESTAMP" noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
@@ -86,6 +86,6 @@ cd $CURRENTDATE
 prompt
 binary
 hash
-put WAPG_ICICI_Working_file_Non_Mplace_automated_$CURRENTDATE.csv.gz
+put WAPG_ICICI_Working_file_Non_Mplace_automated_test_$CURRENTDATE.csv.gz
 bye
 End
