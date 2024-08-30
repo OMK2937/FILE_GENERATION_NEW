@@ -37,7 +37,7 @@ WHERE  ipm1.mid IS NULL
        AND payoutbatchid IN (SELECT DISTINCT(batch_id)
                              FROM   settlement_wapg
                              WHERE  created_at >= Curdate()
-                                    AND status = 'success')
+                                    AND status = 'calculated')
        AND ( wapg.mid IN (SELECT mid
                           FROM   merchant_payout_config
                           WHERE  power_access_file = 1)
@@ -77,7 +77,7 @@ WHERE  ipm1.mid IS NULL
        AND refundbatchid IN (SELECT DISTINCT(batch_id)
                              FROM   settlement_wapg
                              WHERE  created_at >= Curdate()
-                                    AND status = 'success')
+                                    AND status = 'calculated')
        AND ( wapg.mid IN (SELECT mid
                           FROM   merchant_payout_config
                           WHERE  power_access_file = 1)
