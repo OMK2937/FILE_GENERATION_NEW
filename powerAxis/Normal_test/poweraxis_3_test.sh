@@ -1,7 +1,3 @@
-echo -e "\n\n\n\n\nScript execution started:"
-date
-echo -e "\n\n"
-
 Queries()
 {
 
@@ -594,18 +590,13 @@ where
     where
       created_at >= curdate()
       and status = 'calculated') and t.statecode between 28 and 68;
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
+" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
 
 
 
 }
 
 Queries
-
-echo -e "\nBefore executing the FTP Function..\n"
-ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
-date
-echo -e "\n\n"
 
 ftp_upload()
 {
@@ -632,8 +623,5 @@ EOF
 
 ftp_upload
 
-echo -e " \nFTP Function completed successfully.\n"
-date
-echo -e "\n\n"
 
-#bash -xf /var/scripts/check_emptyfiles_New.sh >> /tmp/cronlogs/check_emptyfiles.log
+bash -xf /var/scripts/check_emptyfiles_New.sh >> /tmp/cronlogs/check_emptyfiles.log
