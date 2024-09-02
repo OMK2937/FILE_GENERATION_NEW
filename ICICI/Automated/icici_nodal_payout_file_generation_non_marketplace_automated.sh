@@ -12,7 +12,7 @@ DATE3DBEFORE=`date --date="3 days ago" "+%Y-%m-%d"`
 DATE7DBEFORE=`date --date="7 days ago" "+%Y-%m-%d"`
 SED=/bin/sed
 # ICICI Payout File
-echo "Count of merchants" |  mail -s "Starting payout Generation for WAPG Payout | Non-Marketplace Merchants | ICICI Bank | $TIMESTAMP" noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
+echo "Count of merchants" |  mail -s "Starting payout Generation for WAPG Payout Automated Payout | Non-Marketplace Merchants | ICICI Bank | $TIMESTAMP" noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
 query="select (CASE WHEN EXISTS(SELECT 1 FROM bank_holidays WHERE bank_holidays.date = curdate() OR DAYNAME(curdate()) ='Sunday' OR (DAYNAME(curdate()) ='Saturday' AND
 FLOOR((DAYOFMONTH(curdate()) + 6 ) / 7) IN (2, 4) )) then 'I' else 'N' end) AS 'Record Identifier', merchant_id AS 'Beneficiary Code',
 DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) AS 'Execution Date', amount AS 'Transaction amount',
