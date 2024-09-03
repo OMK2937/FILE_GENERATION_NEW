@@ -590,7 +590,7 @@ where
     where
       created_at >= curdate()
       and status = 'calculated') and t.statecode between 28 and 68;
-" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test.csv
+" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_test3.csv
 
 
 
@@ -615,7 +615,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCORW_MP_WORKING_FILE_test.csv
+put AXIS_ESCORW_MP_WORKING_FILE_test3.csv
 
 bye
 EOF
