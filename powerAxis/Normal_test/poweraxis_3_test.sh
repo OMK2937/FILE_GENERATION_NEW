@@ -1,3 +1,6 @@
+MYSQL=/usr/bin/mysql
+DB=mobinew
+
 Queries()
 {
 
