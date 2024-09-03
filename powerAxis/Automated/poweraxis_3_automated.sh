@@ -1,6 +1,9 @@
 echo -e "\n\n\n\n\nScript execution started:"
 date
 echo -e "\n\n"
+#!bin/bash
+MYSQL=/usr/bin/mysql
+DB=mobinew
 
 Queries()
 {
