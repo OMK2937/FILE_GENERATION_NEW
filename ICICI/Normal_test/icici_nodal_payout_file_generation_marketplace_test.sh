@@ -29,6 +29,7 @@ cd /tmp/cronreports/
 #ftp -n mbk-ftp.centralindia.cloudapp.azure.com << End
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
+pass
 passive
 mkdir ManualTest
 cd ManualTest
@@ -65,6 +66,7 @@ cd /tmp/cronreports/working/
 #ftp -n mbk-ftp.centralindia.cloudapp.azure.com << End
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
+pass
 passive
 mkdir ManualTest
 cd ManualTest

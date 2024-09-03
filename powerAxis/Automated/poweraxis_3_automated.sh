@@ -1,7 +1,7 @@
 echo -e "\n\n\n\n\nScript execution started:"
 date
 echo -e "\n\n"
-
+#!bin/bash
 MYSQL=/usr/bin/mysql
 DB=mobinew
 
@@ -598,6 +598,7 @@ where
       created_at >= curdate()
       and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) and t.statecode between 28 and 68;
 "| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_automated.csv
+
 
 
 }
