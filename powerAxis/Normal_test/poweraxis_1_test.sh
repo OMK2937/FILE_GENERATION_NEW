@@ -69,7 +69,6 @@ binary
 hash
 lcd /data/cronreport-payout/
 put Tables_timestamp_data.csv
-
 bye
 EOF
 }

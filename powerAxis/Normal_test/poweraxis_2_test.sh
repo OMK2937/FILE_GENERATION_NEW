@@ -1,8 +1,6 @@
 Queries()
 {
 
-
-
 #AXIS NODAL MP WORKING FILE
 echo "
 SELECT wapg.mid,

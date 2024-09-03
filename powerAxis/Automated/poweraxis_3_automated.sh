@@ -594,7 +594,7 @@ where
     where
       created_at >= curdate()
       and status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure')) and t.statecode between 28 and 68;
-"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE.csv
+"| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_automated.csv
 
 
 
@@ -603,7 +603,7 @@ where
 Queries
 
 echo -e "\nBefore executing the FTP Function..\n"
-ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE.csv
+ls -lrth /data/cronreport-payout/AXIS_ESCORW_MP_WORKING_FILE_automated.csv
 date
 echo -e "\n\n"
 
@@ -626,7 +626,7 @@ prompt
 binary
 hash
 lcd /data/cronreport-payout/
-put AXIS_ESCORW_MP_WORKING_FILE.csv
+put AXIS_ESCORW_MP_WORKING_FILE_automated.csv
 
 bye
 EOF
