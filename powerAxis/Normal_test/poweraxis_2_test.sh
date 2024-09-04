@@ -1,4 +1,3 @@
-#!bin/bash
 MYSQL=/usr/bin/mysql
 DB=mobinew
 

@@ -506,7 +506,6 @@ group by s.parentmid,
         batch_id;
 "| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_NODAL_MP_PAYOUT_FILE_automated_test.csv
 
-
 ftp_upload()
 {
 todayis=`date "+%F"`
