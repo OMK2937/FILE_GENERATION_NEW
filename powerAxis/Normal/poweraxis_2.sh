@@ -173,8 +173,6 @@ EOF
 ftp_upload
 
 
--bash -xf /var/scripts/check_emptyfiles_New.sh >> /tmp/cronlogs/check_emptyfiles.log
-
 
 
 
