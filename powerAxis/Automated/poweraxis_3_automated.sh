@@ -8,7 +8,6 @@ DB=mobinew
 Queries()
 {
 
-
 #AXIS ESCROW MP WORKING FILE
 
 echo "
