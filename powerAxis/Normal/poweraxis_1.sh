@@ -657,8 +657,8 @@ where (
                 or ismarketplace is null
         )
         and paymentType not in (2, 3, 4)
-        and payoutbatchid in (
-                select distinct(batch_id)
+        and payoutbatchid, mid in (
+                select batch_id, merchant_id
                 from settlement_wapg
                 where status = 'calculated' and created_at >= curdate()
         )
@@ -724,8 +724,8 @@ where (
                 or ismarketplace is null
         )
         and paymentType not in (2, 3,4)
-        and refundbatchid in (
-                select distinct(batch_id)
+        and (refundbatchid, wapg.mid) in (
+                select batch_id, merchant_id
                 from settlement_wapg
                 where status = 'calculated' and created_at >= curdate() 
         )
@@ -845,7 +845,7 @@ WHERE  w.settlementdate >= Date(Now())
        AND paymenttype = 4
        AND partnertdr IN ( 1, 2 )
        AND t.mid NOT IN ( 'MBK5778' )
-       AND t.statecode between 28 and 68 and t.updatedat>=date(now()) AND w.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND t.statecode between 28 and 68 and t.updatedat>=date(now()) AND (w.payoutbatchid, w.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE status = 'calculated' and  created_at >= Curdate() )) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
@@ -910,7 +910,7 @@ WHERE  w.settlementdate >= Date(Now())
        AND paymenttype = 4
        AND partnertdr IN ( 1, 2 )
        AND t.mid NOT IN ( 'MBK5778' )
-	   AND t.statecode between 28 and 68 and t.updatedat>date(now())  AND w.refundbatchid IN (SELECT DISTINCT( batch_id )
+	   AND t.statecode between 28 and 68 and t.updatedat>date(now())  AND (w.refundbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE status = 'calculated' and created_at >= Curdate())) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 
@@ -977,7 +977,7 @@ WHERE  c.createdat >= Date(Now())
        AND w.statecode IN ( 28, 38 )
        AND partnertdr = 1
        AND t.mid NOT IN ( 'MBK5778' )
-       AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.payoutbatchid, t.mid IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE  status = 'calculated' and created_at >= Curdate())
         and t.statecode between 28 and 68
@@ -1051,7 +1051,7 @@ WHERE  c.createdat >= Date(Now())
        AND t.payoutbatchid NOT IN (SELECT DISTINCT( batch_id )
                                    FROM   merchant_settlement_request
                                    WHERE  created_at >= Curdate())
-       AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.payoutbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE  status = 'calculated' and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
@@ -1106,7 +1106,7 @@ WHERE  c.createdat >= Date(Now())
        AND partnertdr IS NULL
        AND t.mid NOT IN ( 'MBK5778' )
 	   and t.updatedat>date(now())
-       AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.payoutbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE status = 'calculated' and created_at >= Curdate())
                                ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
@@ -1171,7 +1171,7 @@ WHERE  c.createdat >= Date(Now())
        AND partnertdr IS NULL
        AND t.mid NOT IN ( 'MBK5778' )
 	   and t.updatedat>date(now())
-       AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.refundbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE status = 'calculated' and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
@@ -1249,7 +1249,7 @@ WHERE  c.createdat >= Date(Now())
        AND t.mid NOT IN ( 'MBK5778' )
 	   and t.updatedat>date(now())
 	   and w.updatedat>date(now())
-       AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.refundbatchid, t.mid)  IN (SELECT  batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE status = 'calculated' and created_at >= Curdate())
                                ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
@@ -1330,7 +1330,7 @@ WHERE  c.createdat >= Date(Now())
 HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
                                FROM   merchant_settlement_request
                                WHERE  created_at >= Curdate())
-       AND refund_batch_id IN (SELECT DISTINCT( batch_id )
+       AND (refund_batch_id, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE status = 'calculated' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
 "| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_WORKING_FILE.csv
