@@ -677,7 +677,7 @@ where (
                 or ismarketplace is null
         )
         and paymentType not in (2, 3, 4)
-        and (payoutbatchid, mid) in (
+        and (payoutbatchid, wapg.mid) in (
                 select batch_id, merchant_id
                 from settlement_wapg
                 where status = 'calculated' and created_at >= curdate()
