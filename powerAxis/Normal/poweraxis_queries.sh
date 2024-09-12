@@ -402,40 +402,41 @@ echo "
 select wapg.mid,
         wapg.smid,
         wapg.orderid,
-        wapg.createdat as txntime,
-        wapg.txnamount as amount,
+        wapg.createdat AS txntime,
+        wapg.txnamount AS amount,
         wapg.totalpayoutamt,
-        -(- wapg.totalpayoutamt) as settlement_amount,
-        date_format(now(), '%Y-%m-%d') as settlement_date,
-        payoutbatchid as settlement_batch,
-        'credit' as type,
-        wapg.wallettxnamount as walletAmount,
-        wapg.pgtxnamount as PgTxnAmount,
-caSe
-                when wapgm.paymenttype = 1 then 'UPI'
-                when wapgm.paymenttype = 0 then 'WAPG' else 'ZIP'
-        end aS 'TxnMode'
+        -(- wapg.totalpayoutamt) AS settlement_amount,
+        date_format(now(), '%Y-%m-%d') AS settlement_date,
+        payoutbatchid AS settlement_batch,
+        'credit' AS type,
+        wapg.wallettxnamount AS walletAmount,
+        wapg.pgtxnamount AS PgTxnAmount,
+cASe
+                when ppo.gatewayid = '15' then 'UPI'
+                when ppo.gatewayid = '16' then 'ZIP' else 'WAPG'
+        end AS 'TxnMode'
 from wallet_as_pg_ledger wapg force index(idx_wallet_as_pg_ledger_updatedat)
-        left join wallet_as_pg_ledger_metadata wapgm force index(PRIMARY) on (wapg.id = wapgm.parentid)
+        left join wallet_as_pg_ledger_metadata wapgm  on (wapg.id = wapgm.parentid)
+        left join pg_payment_order ppo force index(idx_ppo_stamp) on (wapgm.pgorderid = ppo.stamp)
         left join merchant on (wapg.mid = merchant.mid)
 where (
                 wapg.mid not in (
                         select mid
                         from icici_payout_merchants
-                        where isPayoutEnabled = 1
+                        where isPayoutEnabled = 1 and icici_payout_merchants.mid=wapg.mid
                 )
                 and if(
                         wapg.smid is not NULL,
                         wapg.smid not in (
                                 select mid
                                 from icici_payout_merchants
-                                where isPayoutEnabled = 1
+                                where isPayoutEnabled = 1 and icici_payout_merchants.mid=wapg.smid
                         ),
 (
                                 wapg.mid not in (
                                         select mid
                                         from icici_payout_merchants
-                                        where isPayoutEnabled = 1
+                                        where isPayoutEnabled = 1 and icici_payout_merchants.mid=wapg.mid
                                 )
                         )
                 )
@@ -443,62 +444,82 @@ where (
         and wapg.updatedat >= DATE(now())
         and payoutbatchid like concat('%', date_format(now(), '%Y%m%d'), '%')
         and ismarketplace = 'y'
+and statecode in (28,38)
+
         and paymentType not in (2, 3,4)
-        and payoutbatchid in (
-                select distinct(batch_id)
-                from settlement_wapg
-                where status ='calculated' and created_at >= curdate()
-        )
+     AND
+    ( (wapg.payoutbatchid, wapg.mid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+  OR
+  (wapg.payoutbatchid, wapg.smid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+    )
+
         and (
                 wapg.mid in (
                         select mid
                         from merchant_payout_config
-                        where power_access_file = 1
+                        where power_access_file = 1 and merchant_payout_config.mid=wapg.mid
                 )
                 or wapg.smid in (
                         select mid
                         from merchant_payout_config
-                        where power_access_file = 1
+                        where power_access_file = 1 and merchant_payout_config.mid=wapg.smid
                 )
         )
 union all
 select wapg.mid,
         wapg.smid,
         wapg.orderid,
-        wapg.createdat as txntime,
-        wapg.txnamount as amount,
+        wapg.createdat AS txntime,
+        wapg.txnamount AS amount,
         wapg.txnamount,
-        - wapg.txnamount as settlement_amount,
-        date_format(now(), '%Y-%m-%d') as settlement_date,
-        wapg.refundbatchid as settlement_batch,
-        'debit' as type,
-        wapg.wallettxnamount as walletAmount,
-        wapg.pgtxnamount as PgTxnAmount,
-caSe
-                when wapgm.paymenttype = 1 then 'UPI'
-                when wapgm.paymenttype = 0 then 'WAPG' else 'ZIP'
-        end aS 'TxnMode'
+        - wapg.txnamount AS settlement_amount,
+        date_format(now(), '%Y-%m-%d') AS settlement_date,
+        wapg.refundbatchid AS settlement_batch,
+        'debit' AS type,
+        wapg.wallettxnamount AS walletAmount,
+        wapg.pgtxnamount AS PgTxnAmount,
+cASe
+                when ppo.gatewayid = '15' then 'UPI'
+                when ppo.gatewayid = '16' then 'ZIP' else 'WAPG'
+        end AS 'TxnMode'
 from wallet_as_pg_ledger wapg force index(idx_wallet_as_pg_ledger_updatedat)
-        left join wallet_as_pg_ledger_metadata wapgm force index(PRIMARY) on (wapg.id = wapgm.parentid)
-        left join merchant on (wapg.mid = merchant.mid)
+        left join wallet_as_pg_ledger_metadata wapgm  on (wapg.id = wapgm.parentid)
+        left join pg_payment_order ppo force index(idx_ppo_stamp) on (wapgm.pgorderid = ppo.stamp)
+        left join merchant force index (merchant_mid_index) on (wapg.mid = merchant.mid)
 where (
                 wapg.mid not in (
                         select mid
                         from icici_payout_merchants
-                        where isPayoutEnabled = 1
+                        where isPayoutEnabled = 1 and icici_payout_merchants.mid=wapg.mid
                 )
                 and if(
                         wapg.smid is not NULL,
                         wapg.smid not in (
                                 select mid
                                 from icici_payout_merchants
-                                where isPayoutEnabled = 1
+                                where isPayoutEnabled = 1 and icici_payout_merchants.mid=wapg.smid
                         ),
 (
                                 wapg.mid not in (
                                         select mid
                                         from icici_payout_merchants
-                                        where isPayoutEnabled = 1
+                                        where isPayoutEnabled = 1 and icici_payout_merchants.mid=wapg.mid
                                 )
                         )
                 )
@@ -507,25 +528,42 @@ where (
         and refundbatchid like concat('%', date_format(now(), '%Y%m%d'), '%')
         and ismarketplace = 'y'
         and paymentType not in (2, 3,4)
-        and refundbatchid in (
-                select distinct(batch_id)
-                from settlement_wapg
-                where status ='calculated' and created_at >= curdate()
-        )
+and statecode in (241,243,261,264)
+AND
+    ( (wapg.refundbatchid, wapg.mid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+  OR
+
+  (wapg.refundbatchid, wapg.smid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+    )
         and (
                 wapg.mid in (
                         select mid
                         from merchant_payout_config
-                        where power_access_file = 1
+                        where power_access_file = 1 and merchant_payout_config.mid=wapg.mid
                 )
                 or wapg.smid in (
                         select mid
                         from merchant_payout_config
-                        where power_access_file = 1
+                        where power_access_file = 1 and merchant_payout_config.mid=wapg.smid
                 )
         )
-order by 1;
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE.csv
+order by 1;"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_NODAL_MP_WORKING_FILE.csv
 
 
 #AXIS NODAL NMP PAYOUT FILE
@@ -589,7 +627,6 @@ where sw.merchant_id = m.mid and and sw.status ='calculated'
 
 
 #AXIS NODAL NMP WORKING FILE
-
 echo "
 select wapg.mid,
         wapg.smid,
@@ -609,7 +646,7 @@ caSe
         end aS 'TxnMode'
 from wallet_as_pg_ledger wapg
         left join wallet_as_pg_ledger_metadata wapgm on (wapg.id = wapgm.parentid)
-        left join pg_Payment_order ppo on (wapgm.pgorderid = ppo.stamp)
+        left join pg_payment_order ppo on (wapgm.pgorderid = ppo.stamp)
         left join merchant on (wapg.mid = merchant.mid)
 where (
                 wapg.mid not in (
@@ -640,10 +677,10 @@ where (
                 or ismarketplace is null
         )
         and paymentType not in (2, 3, 4)
-        and payoutbatchid in (
-                select distinct(batch_id)
+        and payoutbatchid, mid in (
+                select batch_id, merchant_id
                 from settlement_wapg
-                where status ='calculated' and created_at >= curdate() 
+                where status = 'calculated' and created_at >= curdate()
         )
         and (
                 wapg.mid in (
@@ -676,7 +713,7 @@ caSe
         end aS 'TxnMode'
 from wallet_as_pg_ledger wapg
         left join wallet_as_pg_ledger_metadata wapgm on (wapg.id = wapgm.parentid)
-        left join pg_Payment_order ppo on (wapgm.pgorderid = ppo.stamp)
+        left join pg_payment_order ppo on (wapgm.pgorderid = ppo.stamp)
         left join merchant on (wapg.mid = merchant.mid)
 where (
                 wapg.mid not in (
@@ -707,10 +744,10 @@ where (
                 or ismarketplace is null
         )
         and paymentType not in (2, 3,4)
-        and refundbatchid in (
-                select distinct(batch_id)
+        and (refundbatchid, wapg.mid) in (
+                select batch_id, merchant_id
                 from settlement_wapg
-                where status ='calculated' and created_at >= curdate()
+                where status = 'calculated' and created_at >= curdate()
         )
         and (
                 wapg.mid in (
@@ -729,593 +766,666 @@ order by 1;"| draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Ada
 
 
 #AXIS ESCROW MP WORKING FILE
-
 echo "
 select
-  t.smid,
-  t.orderid,
-  t.parentmid,
-  w.txnamount,
-  t.memberid,
-  w.totalfee,
-  w.totalservicetax,
-  w.totalpayoutamt,
-  w.payoutbatchid AS 'payoutbatchid',
-  '' AS 'refundbatchid',
-  w.createdat,
-  w.settlementdate AS payoutdate,
-  '' AS 'refund amount',
-  '' AS 'refund adjusted date',
-  'Payout initiated' AS 'Status',
-  date(w.settlementdate) AS SettlementDate,
-  t.id AS txid,
-  'Credit' AS 'settlementtype',
- -(- w.totalpayoutamt) AS 'settlementamount',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType not in (2, 3, 4) THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType not in (2, 3, 4) THEN 'MBK54671' when partnerTDR IN (1, 2)
-  and paymentType = 4 THEN 'INTEROP_WALLET' ELSE 'NA' END AS 'Global MID',
-  cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
-  (
-    cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
-  ) AS Payment_Instrument,
-  mtmd.ext_ref_no AS 'External_Refrence_Number',
-  cASe when t.member_uid = '85861954'
-  and paymenttype = 4 then 'ThirdPartyUPI' when t.member_uid != '85861954'
-  and paymenttype = '4' then 'MobikwikUPI' else NULL end UPI_MODE
+t.smid,
+t.orderid,
+t.parentmid,
+w.txnamount,
+t.memberid,
+w.totalfee,
+w.totalservicetax,
+w.totalpayoutamt,
+w.payoutbatchid AS 'payoutbatchid',
+'' AS 'refundbatchid',
+w.createdat,
+w.settlementdate AS payoutdate,
+'' AS 'refund amount',
+'' AS 'refund adjusted date',
+'Payout initiated' AS 'Status',
+date(w.settlementdate) AS SettlementDate,
+t.id AS txid,
+'Credit' AS 'settlementtype',
+-(- w.totalpayoutamt) AS 'settlementamount',
+cASe when partnerTDR IN (1, 2)
+and paymentType not in (2, 3, 4) THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
+cASe when partnerTDR IN (1, 2)
+and paymentType not in (2, 3, 4) THEN 'MBK54671' when partnerTDR IN (1, 2)
+and paymentType = 4 THEN 'INTEROP_WALLET' ELSE 'NA' END AS 'Global MID',
+cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
+(
+cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
+) AS Payment_Instrument,
+mtmd.ext_ref_no AS 'External_Refrence_Number',
+cASe when t.member_uid = '85861954'
+and paymenttype = 4 then 'ThirdPartyUPI' when t.member_uid != '85861954'
+and paymenttype = '4' then 'MobikwikUPI' else NULL end UPI_MODE
 from
-  txpmarketplace t
-  left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
-  left join wallet_as_pg_ledger w on (
-    t.orderid = w.orderid
-    and t.parentmid = w.mid
-    and w.statecode in (28, 38)
-  )
-  left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+txpmarketplace t
+left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
+left join wallet_as_pg_ledger w on (
+t.orderid = w.orderid
+and t.parentmid = w.mid
+and w.statecode in (28, 38)
+)
+left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
 where
-  w.settlementdate >= date(now())
-  and w.updatedat >= date(now())
-  and w.isnodalprocessed = 1
-  and paymenttype = 4
-  and partnertdr in (1, 2)
-  and t.parentmid not in ('MBK5778')
-  and (
-    t.parentmid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-    or t.smid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-  )
-  and w.payoutbatchid in (
-    select
-      distinct(batch_id)
-    from
-      kotak_settlement
-    where
-      created_at >= curdate()
-      and status = 'calculated' 
-  ) and t.statecode between 28 and 68
-UNION ALL
+w.settlementdate >= date(now())
+and w.updatedat >= date(now())
+and w.isnodalprocessed = 1
+and paymenttype = 4
+and partnertdr in (1, 2)
+and t.parentmid not in ('MBK5778')
+and (
+t.parentmid in (
 select
-  t.smid,
-  t.orderid,
-  t.parentmid,
-  t.txnamount,
-  t.memberid,
-  t.fee,
-  t.servicetax,
-  t.payoutamt,
-  t.payoutbatchid AS 'payoutbatchid',
-  '' AS 'refundbatchid',
-  t.createdat,
-  c.createdat AS payoutdate,
-  '' AS 'refund amount',
-  '' AS 'refund adjusted date',
-  'Payout initiated' AS 'Status',
-  date(c.createdat) AS SettlementDate,
-  t.id AS txid,
-  'Credit' AS 'settlementtype',
-  cASe when partnertdr in (1, 2)
-  and paymentType != 2 then -(- t.txnamount) else -(- payoutamt) end AS 'settlementamount',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
-  and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
-  cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
-  (
-    cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
-  ) AS Payment_Instrument,
-  mtmd.ext_ref_no AS 'External_Refrence_Number',
-  NULL UPI_MODE
+mid
 from
-  txpmarketplace t
-  left join txcmarketplace c on (
-    t.id = c.parentid
-    and c.statecode = 35
-  )
-  left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
-  left join wallet_as_pg_ledger w on (
-    t.orderid = w.orderid
-    and t.parentmid = w.mid
-    and w.statecode in (28, 68)
-  )
-  left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+merchant_payout_config
 where
-  t.parentmid not in ('MBK5778', 'MBK5778A')
-  and t.payoutbatchid like concat(
-    '%',
-    date_format (now(), '%Y%m%d'),
-    '%'
-  )
-  and t.statecode >= 35
-  and t.statecode <= 68
-  and t.updatedat > date(now())
-  and (
-    cASe when partnertdr in (1, 2)
-    and paymentType != 2 then 'MBK54671' in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-        and mid = 'MBK54671'
-    ) else t.parentmid in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-    )
-    or t.smid in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-    ) end
-  )
-  and t.payoutbatchid in (
-    select
-      distinct(batch_id)
-    from
-      kotak_settlement
-    where
-      created_at >= curdate()
-      and status = 'calculated'
-  )
-  and (
-    t.parentmid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-    or t.smid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-  )
-union
+power_access_file = 1
+)
+or t.smid in (
 select
-  tx.smid,
-  tx.orderid,
-  tx.parentmid,
-  tx.txnamount,
-  tx.memberid,
-  tx.fee,
-  tx.servicetax,
-  tx.payoutamt,
-  '' AS 'payoutbatchid',
-  tx.refundbatchid AS 'refundbatchid',
-  tx.createdat,
-  '' AS payoutdate,
-  tx.txnamount AS 'refund amount',
-  c1.createdat AS 'refund adjusted date',
-  'Refund Adjusted' AS 'Status',
-  date(c1.createdat) AS SettlementDate,
-  tx.id AS txid,
-  'Debit' AS 'settlementtype',
-  - tx.txnamount AS 'settlementamount',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
-  and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
-  cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
-  (
-    cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
-  ) AS Payment_Instrument,
-  mtmd.ext_ref_no AS 'External_Refrence_Number',
-  NULL UPI_MODE
+mid
 from
-  txpmarketplace tx
-  join txcmarketplace c1 on (
-    tx.id = c1.parentid
-    and c1.statecode in (44, 45)
-  )
-  left join merchant_txp_meta_data mtmd on (tx.id = mtmd.parent_id)
-  left join wallet_as_pg_ledger w on (
-    tx.orderid = w.orderid
-    and tx.parentmid = w.mid
-    and w.statecode in (28, 68)
-  )
-  left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+merchant_payout_config
 where
-  tx.parentmid not in ('MBK5778', 'MBK5778A')
-  and tx.refundbatchid like concat(
-    '%',
-    date_format (now(), '%Y%m%d'),
-    '%'
-  )
-  and cASe when tx.partnerTDR IN (1, 2) then tx.statecode in (44, 45, 37) else tx.statecode in (44, 45) end
-  and tx.updatedat > date(now())
-  and (
-    cASe when partnertdr in (1, 2)
-    and paymentType != 2 then 'MBK54671' in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-        and mid = 'MBK54671'
-    ) else tx.parentmid in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-    )
-    or tx.smid in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-    ) end
-  )
-  and tx.refundbatchid in (
-    select
-      distinct(batch_id)
-    from
-      kotak_settlement
-    where
-      created_at >= curdate()
-      and status = 'calculated'
-  )
-  and (
-    tx.parentmid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-    or tx.smid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-  )
-UNION all
+power_access_file = 1
+)
+)
+AND
+(
+(w.payoutbatchid, t.parentmid) in (
 select
-  t.smid,
-  t.orderid,
-  t.parentmid,
-  t.txnamount,
-  t.memberid,
-  t.fee,
-  t.servicetax,
-  t.payoutamt,
-  '' AS 'payoutbatchid',
-  t.refundbatchid AS 'refundbatchid',
-  t.createdat,
-  '' AS payoutdate,
-  c1.amount AS 'refund amount',
-  c1.createdat AS 'refund adjusted date',
-  'partial Refund Paid' AS 'Status',
-  date(c1.createdat) AS SettlementDate,
-  t.id AS txid,
-  'Debit' AS 'settlementtype',
-  - c1.amount AS 'settlementamount',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
-  and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
-  cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
-  (
-    cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
-  ) AS Payment_Instrument,
-  mtmd.ext_ref_no AS 'External_Refrence_Number',
-  NULL UPI_MODE
+batch_id, merchant_id
 from
-  txpmarketplace t
-  left join txcmarketplace c1 on (
-    t.id = c1.parentid
-    and c1.statecode = 46
-  )
-  left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
-  left join wallet_as_pg_ledger w on (
-    t.orderid = w.orderid
-    and t.parentmid = w.mid
-    and w.statecode in (28, 68)
-  )
-  left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+kotak_settlement
 where
-  t.parentmid not in ('MBK5778', 'MBK5778A')
-  and c1.rrn like concat(
-    '%',
-    date_format (now(), '%Y%m%d'),
-    '%'
-  )
-  and t.statecode >= 28
-  and t.statecode < 69
-  and c1.statecode = 46
-  and t.updatedat > date(now())
-  and (
-    cASe when partnertdr in (1, 2)
-    and paymentType != 2 then 'MBK54671' in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-        and mid = 'MBK54671'
-    ) else t.parentmid in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-    ) end
-  )
-  and t.refundbatchid in (
-    select
-      distinct(batch_id)
-    from
-      kotak_settlement
-    where
-      created_at >= curdate()
-      and status = 'calculated'
-  )
-  and (
-    t.parentmid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-    or t.smid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-  )
-union all
+created_at >= curdate()
+and status = 'calculated'
+) OR
+(w.payoutbatchid, t.smid) in (
 select
-  t.smid,
-  t.orderid,
-  t.parentmid,
-  t.txnamount,
-  t.memberid,
-  t.fee,
-  t.servicetax,
-  t.payoutamt,
-  '' AS 'payoutbatchid',
-  c1.rrn AS 'refundbatchid',
-  t.createdat,
-  '' AS payoutdate,
-  c1.amount AS 'refund amount',
-  c1.createdat AS 'refund adjusted date',
-  'Partial Refund Adjusted' AS 'Status',
-  date(c1.createdat) AS SettlementDate,
-  t.id AS txid,
-  'Debit' AS 'settlementtype',
-  - c1.amount AS 'settlementamount',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
-  and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
-  cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
-  (
-    cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
-  ) AS Payment_Instrument,
-  mtmd.ext_ref_no AS 'External_Refrence_Number',
-  NULL UPI_MODE
+batch_id, merchant_id
 from
-  txpmarketplace t
-  left join txcmarketplace c1 on (
-    t.id = c1.parentid
-    and c1.statecode = 66
-  )
-  left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
-  left join wallet_as_pg_ledger w on (
-    t.orderid = w.orderid
-    and t.parentmid = w.mid
-    and w.statecode in (28, 68)
-  )
-  left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+kotak_settlement
 where
-  t.parentmid not in ('MBK5778', 'MBK5778A')
-  and c1.rrn like concat(
-    '%',
-    date_format (now(), '%Y%m%d'),
-    '%'
-  )
-  and (
-    t.statecode >= 60
-    and t.statecode <= 68
-  )
-  and t.updatedat > date(now())
-  and (
-    cASe when partnertdr in (1, 2)
-    and paymentType != 2 then 'MBK54671' in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-        and mid = 'MBK54671'
-    ) else t.parentmid in (
-      select
-        mid
-      from
-        payout_merchants_info
-      where
-        payoutBankName = 'axis'
-        and isPayoutEnabled = 1
-    ) end
-  )
-  and t.refundbatchid in (
-    select
-      distinct(batch_id)
-    from
-      kotak_settlement
-    where
-      created_at >= curdate()
-      and status = 'calculated'
-  )
-  and (
-    t.parentmid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-    or t.smid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-  )
-UNION ALL
+created_at >= curdate()
+and status = 'calculated'
+)
+)  and t.statecode between 28 and 68
+UNION
 select
-  t.smid,
-  t.orderid,
-  t.parentmid,
-  w.txnamount,
-  t.memberid,
-  w.totalfee,
-  w.totalservicetax,
-  w.totalpayoutamt,
-  '' AS 'payoutbatchid',
-  w.refundbatchid AS 'refundbatchid',
-  w.createdat,
-  '' AS payoutdate,
-  w.txnamount AS 'refund amount',
-  w.createdat AS 'refund adjusted date',
-  'Partial Refund Adjusted' AS 'Status',
-  date(w.createdat) AS SettlementDate,
-  t.id AS txid,
-  'Debit' AS 'settlementtype',
-  - w.txnamount AS 'settlementamount',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType not in (2, 3, 4) THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
-  cASe when partnerTDR IN (1, 2)
-  and paymentType not in (2, 3, 4) THEN 'MBK54671' when partnerTDR IN (1, 2)
-  and paymentType = 4 THEN 'INTEROP_WALLET' ELSE 'NA' END AS 'Global MID',
-  cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
-  (
-    cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
-  ) AS Payment_Instrument,
-  mtmd.ext_ref_no AS 'External_Refrence_Number',
-  cASe when t.member_uid = '85861954'
-  and paymenttype = 4 then 'ThirdPartyUPI' when t.member_uid != '85861954'
-  and paymenttype = '4' then 'MobikwikUPI' else NULL end UPI_MODE
+t.smid,
+t.orderid,
+t.parentmid,
+t.txnamount,
+t.memberid,
+t.fee,
+t.servicetax,
+t.payoutamt,
+t.payoutbatchid AS 'payoutbatchid',
+'' AS 'refundbatchid',
+t.createdat,
+c.createdat AS payoutdate,
+'' AS 'refund amount',
+'' AS 'refund adjusted date',
+'Payout initiated' AS 'Status',
+date(c.createdat) AS SettlementDate,
+t.id AS txid,
+'Credit' AS 'settlementtype',
+cASe when partnertdr in (1, 2)
+and paymentType != 2 then -(- t.txnamount) else -(- payoutamt) end AS 'settlementamount',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
+and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
+cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
+(
+cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
+) AS Payment_Instrument,
+mtmd.ext_ref_no AS 'External_Refrence_Number',
+NULL UPI_MODE
 from
-  txpmarketplace t
-  left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
-  left join wallet_as_pg_ledger w on (
-    t.orderid = w.orderid
-    and t.parentmid = w.mid
-    and w.statecode > 200
-  )
-  left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+txpmarketplace t
+left join txcmarketplace c on (
+t.id = c.parentid
+and c.statecode = 35
+)
+left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
+left join wallet_as_pg_ledger w on (
+t.orderid = w.orderid
+and t.parentmid = w.mid
+and w.statecode in (28, 68)
+)
+left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
 where
-  w.settlementdate >= date(now())
-  and w.updatedat >= date(now())
-  and w.isnodalprocessed = 1
-  and paymenttype = 4
-  and partnertdr in (1, 2)
-  and t.parentmid not in ('MBK5778')
-  and (
-    t.parentmid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-    or t.smid in (
-      select
-        mid
-      from
-        merchant_payout_config
-      where
-        power_access_file = 1
-    )
-  )
-  and w.refundbatchid in (
-    select
-      distinct(batch_id)
-    from
-      kotak_settlement
-    where
-      created_at >= curdate()
-      and status = 'calculated') and t.statecode between 28 and 68 ; 
+t.parentmid not in ('MBK5778', 'MBK5778A')
+and t.payoutbatchid like concat(
+'%',
+date_format (now(), '%Y%m%d'),
+'%'
+)
+and t.statecode >= 35
+and t.statecode <= 68
+and t.updatedat > date(now())
+and (
+cASe when partnertdr in (1, 2)
+and paymentType != 2 then 'MBK54671' in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+and mid = 'MBK54671'
+) else t.parentmid in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+)
+or t.smid in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+) end
+)
+AND
+(
+(t.payoutbatchid, t.parentmid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+) OR
+(t.payoutbatchid, t.smid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+)
+)
+and (
+t.parentmid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+or t.smid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+)
+UNION
+select
+tx.smid,
+tx.orderid,
+tx.parentmid,
+tx.txnamount,
+tx.memberid,
+tx.fee,
+tx.servicetax,
+tx.payoutamt,
+'' AS 'payoutbatchid',
+tx.refundbatchid AS 'refundbatchid',
+tx.createdat,
+'' AS payoutdate,
+tx.txnamount AS 'refund amount',
+c1.createdat AS 'refund adjusted date',
+'Refund Adjusted' AS 'Status',
+date(c1.createdat) AS SettlementDate,
+tx.id AS txid,
+'Debit' AS 'settlementtype',
+- tx.txnamount AS 'settlementamount',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
+and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
+cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
+(
+cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
+) AS Payment_Instrument,
+mtmd.ext_ref_no AS 'External_Refrence_Number',
+NULL UPI_MODE
+from
+txpmarketplace tx
+join txcmarketplace c1 on (
+tx.id = c1.parentid
+and c1.statecode in (44, 45)
+)
+left join merchant_txp_meta_data mtmd on (tx.id = mtmd.parent_id)
+left join wallet_as_pg_ledger w on (
+tx.orderid = w.orderid
+and tx.parentmid = w.mid
+and w.statecode in (28, 68)
+)
+left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+where
+tx.parentmid not in ('MBK5778', 'MBK5778A')
+and tx.refundbatchid like concat(
+'%',
+date_format (now(), '%Y%m%d'),
+'%'
+)
+and cASe when tx.partnerTDR IN (1, 2) then tx.statecode in (44, 45, 37) else tx.statecode in (44, 45) end
+and tx.updatedat > date(now())
+and (
+cASe when partnertdr in (1, 2)
+and paymentType != 2 then 'MBK54671' in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+and mid = 'MBK54671'
+) else tx.parentmid in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+)
+or tx.smid in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+) end
+)
+AND
+(
+(tx.refundbatchid, tx.parentmid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+) OR
+(tx.refundbatchid, tx.smid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+)
+)
+and (
+tx.parentmid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+or tx.smid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+)
+UNION
+select
+t.smid,
+t.orderid,
+t.parentmid,
+t.txnamount,
+t.memberid,
+t.fee,
+t.servicetax,
+t.payoutamt,
+'' AS 'payoutbatchid',
+t.refundbatchid AS 'refundbatchid',
+t.createdat,
+'' AS payoutdate,
+c1.amount AS 'refund amount',
+c1.createdat AS 'refund adjusted date',
+'partial Refund Paid' AS 'Status',
+date(c1.createdat) AS SettlementDate,
+t.id AS txid,
+'Debit' AS 'settlementtype',
+- c1.amount AS 'settlementamount',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
+and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
+cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
+(
+cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
+) AS Payment_Instrument,
+mtmd.ext_ref_no AS 'External_Refrence_Number',
+NULL UPI_MODE
+from
+txpmarketplace t
+left join txcmarketplace c1 on (
+t.id = c1.parentid
+and c1.statecode = 46
+)
+left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
+left join wallet_as_pg_ledger w on (
+t.orderid = w.orderid
+and t.parentmid = w.mid
+and w.statecode in (28, 68)
+)
+left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+where
+t.parentmid not in ('MBK5778', 'MBK5778A')
+and c1.rrn like concat(
+'%',
+date_format (now(), '%Y%m%d'),
+'%'
+)
+and t.statecode >= 28
+and t.statecode < 69
+and c1.statecode = 46
+and t.updatedat > date(now())
+and (
+cASe when partnertdr in (1, 2)
+and paymentType != 2 then 'MBK54671' in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+and mid = 'MBK54671'
+) else t.parentmid in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+) end
+)
+AND
+(
+(t.refundbatchid, t.parentmid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+) OR
+(t.refundbatchid, t.smid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+)
+)
+and (
+t.parentmid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+or t.smid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+)
+UNION
+select
+t.smid,
+t.orderid,
+t.parentmid,
+t.txnamount,
+t.memberid,
+t.fee,
+t.servicetax,
+t.payoutamt,
+'' AS 'payoutbatchid',
+c1.rrn AS 'refundbatchid',
+t.createdat,
+'' AS payoutdate,
+c1.amount AS 'refund amount',
+c1.createdat AS 'refund adjusted date',
+'Partial Refund Adjusted' AS 'Status',
+date(c1.createdat) AS SettlementDate,
+t.id AS txid,
+'Debit' AS 'settlementtype',
+- c1.amount AS 'settlementamount',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
+cASe when partnerTDR IN (1, 2)
+and paymentType != 2 THEN 'MBK54671' when partnerTDR IN (1, 2)
+and paymentType = 2 THEN 'ZIP_WALLET' ELSE 'NA' END AS 'Global MID',
+cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
+(
+cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
+) AS Payment_Instrument,
+mtmd.ext_ref_no AS 'External_Refrence_Number',
+NULL UPI_MODE
+from
+txpmarketplace t
+left join txcmarketplace c1 on (
+t.id = c1.parentid
+and c1.statecode = 66
+)
+left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
+left join wallet_as_pg_ledger w on (
+t.orderid = w.orderid
+and t.parentmid = w.mid
+and w.statecode in (28, 68)
+)
+left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+where
+t.parentmid not in ('MBK5778', 'MBK5778A')
+and c1.rrn like concat(
+'%',
+date_format (now(), '%Y%m%d'),
+'%'
+)
+and (
+t.statecode >= 60
+and t.statecode <= 68
+)
+and t.updatedat > date(now())
+and (
+cASe when partnertdr in (1, 2)
+and paymentType != 2 then 'MBK54671' in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+and mid = 'MBK54671'
+) else t.parentmid in (
+select
+mid
+from
+payout_merchants_info
+where
+payoutBankName = 'axis'
+and isPayoutEnabled = 1
+) end
+)
+AND
+(
+(t.refundbatchid, t.parentmid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+) OR
+(t.refundbatchid, t.smid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+)
+)
+and (
+t.parentmid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+or t.smid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+)
+UNION
+select
+t.smid,
+t.orderid,
+t.parentmid,
+w.txnamount,
+t.memberid,
+w.totalfee,
+w.totalservicetax,
+w.totalpayoutamt,
+'' AS 'payoutbatchid',
+w.refundbatchid AS 'refundbatchid',
+w.createdat,
+'' AS payoutdate,
+w.txnamount AS 'refund amount',
+w.createdat AS 'refund adjusted date',
+'Partial Refund Adjusted' AS 'Status',
+date(w.createdat) AS SettlementDate,
+t.id AS txid,
+'Debit' AS 'settlementtype',
+- w.txnamount AS 'settlementamount',
+cASe when partnerTDR IN (1, 2)
+and paymentType not in (2, 3, 4) THEN 'WAPG Global Payout' ELSE 'Normal Payout' END AS 'Payout Type',
+cASe when partnerTDR IN (1, 2)
+and paymentType not in (2, 3, 4) THEN 'MBK54671' when partnerTDR IN (1, 2)
+and paymentType = 4 THEN 'INTEROP_WALLET' ELSE 'NA' END AS 'Global MID',
+cASe when collection_mode = '3' then 'Bijlipay_EDC' else 'Mobikwik' end AS Collection_Mode,
+(
+cASe when payment_instrument = '0' then 'Wallet' when payment_instrument = '1' then 'WALLET_AND_PG' when payment_instrument = '2' then 'PG' when payment_instrument = '3' then 'PAYLATER' when payment_instrument = '4' then 'ZIP_AND_WALLET' when payment_instrument = '5' then 'ZIP_EMI' when payment_instrument = '6' then 'UPI' when payment_instrument = '7' then 'CC' when payment_instrument = '8' then 'DC' when payment_instrument = '9' then 'CC_DC' when payment_instrument = '10' then 'UPI_COLLECT' when payment_instrument = '11' then 'EMANDATE' when payment_instrument = '12' then 'NET_BANKING' else null end
+) AS Payment_Instrument,
+mtmd.ext_ref_no AS 'External_Refrence_Number',
+cASe when t.member_uid = '85861954'
+and paymenttype = 4 then 'ThirdPartyUPI' when t.member_uid != '85861954'
+and paymenttype = '4' then 'MobikwikUPI' else NULL end UPI_MODE
+from
+txpmarketplace t
+left join merchant_txp_meta_data mtmd on (t.id = mtmd.parent_id)
+left join wallet_as_pg_ledger w on (
+t.orderid = w.orderid
+and t.parentmid = w.mid
+and w.statecode > 200
+)
+left join wallet_as_pg_ledger_metadata wm on (w.id = wm.parentid)
+where
+w.settlementdate >= date(now())
+and w.updatedat >= date(now())
+and w.isnodalprocessed = 1
+and paymenttype = 4
+and partnertdr in (1, 2)
+and t.parentmid not in ('MBK5778')
+and (
+t.parentmid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+or t.smid in (
+select
+mid
+from
+merchant_payout_config
+where
+power_access_file = 1
+)
+)
+AND
+(
+(w.refundbatchid, t.parentmid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+) OR
+(w.refundbatchid, t.smid) in (
+select
+batch_id, merchant_id
+from
+kotak_settlement
+where
+created_at >= curdate()
+and status = 'calculated'
+)
+)
+and t.statecode between 28 and 68;
 "|draco_da| sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCORW_MP_WORKING_FILE.csv
 
 }
@@ -1352,7 +1462,6 @@ Queries()
 
 
 ##AXIS ESCROW NMP WORKING FILE
-
 echo "
 select inner_query.* from (SELECT t.mid                   'MID',
        t.orderid               'ORDER_ID',
@@ -1407,7 +1516,7 @@ FROM   txp t force index(updatedat)
               ON ( t.orderid = w.orderid
                    AND t.mid = w.mid
                    AND w.statecode IN ( 28, 38 ) )
-       LEFT JOIN wallet_as_pg_ledger_metadata wm 
+       LEFT JOIN wallet_as_pg_ledger_metadata wm
               ON ( w.id = wm.parentid )
 WHERE  w.settlementdate >= Date(Now())
        AND w.updatedat >= Date(Now())
@@ -1415,9 +1524,9 @@ WHERE  w.settlementdate >= Date(Now())
        AND paymenttype = 4
        AND partnertdr IN ( 1, 2 )
        AND t.mid NOT IN ( 'MBK5778' )
-       AND t.statecode between 28 and 68 and t.updatedat>=date(now()) AND w.payoutbatchid IN (SELECT DISTINCT( batch_id )
-                               FROM   kotak_settlement 
-                               WHERE  created_at >= Curdate() AND status = 'calculated')) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
+       AND t.statecode between 28 and 68 and t.updatedat>=date(now()) AND (w.payoutbatchid, w.mid) IN (SELECT batch_id, merchant_id
+                               FROM   kotak_settlement
+                               WHERE status = 'calculated' and  created_at >= Curdate() )) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
        t.orderid               'ORDER_ID',
@@ -1480,8 +1589,8 @@ WHERE  w.settlementdate >= Date(Now())
        AND paymenttype = 4
        AND partnertdr IN ( 1, 2 )
        AND t.mid NOT IN ( 'MBK5778' )
-	   AND t.statecode between 28 and 68 and t.updatedat>date(now())  AND w.refundbatchid IN (SELECT DISTINCT( batch_id )
-                               FROM   kotak_settlement 
+	   AND t.statecode between 28 and 68 and t.updatedat>date(now())  AND (w.refundbatchid, t.mid) IN (SELECT batch_id, merchant_id
+                               FROM   kotak_settlement
                                WHERE status = 'calculated' and created_at >= Curdate())) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 
 UNION ALL
@@ -1547,7 +1656,7 @@ WHERE  c.createdat >= Date(Now())
        AND w.statecode IN ( 28, 38 )
        AND partnertdr = 1
        AND t.mid NOT IN ( 'MBK5778' )
-       AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.payoutbatchid, t.mid IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE  status = 'calculated' and created_at >= Curdate())
         and t.statecode between 28 and 68
@@ -1621,9 +1730,9 @@ WHERE  c.createdat >= Date(Now())
        AND t.payoutbatchid NOT IN (SELECT DISTINCT( batch_id )
                                    FROM   merchant_settlement_request
                                    WHERE  created_at >= Curdate())
-       AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.payoutbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
-                               WHERE  status = 'calculated' and created_at >= Curdate()) 
+                               WHERE  status = 'calculated' and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1676,9 +1785,9 @@ WHERE  c.createdat >= Date(Now())
        AND partnertdr IS NULL
        AND t.mid NOT IN ( 'MBK5778' )
 	   and t.updatedat>date(now())
-       AND t.payoutbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.payoutbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
-                               WHERE status = 'calculated' and created_at >= Curdate()) 
+                               WHERE status = 'calculated' and created_at >= Curdate())
                                ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 
 UNION ALL
@@ -1741,9 +1850,9 @@ WHERE  c.createdat >= Date(Now())
        AND partnertdr IS NULL
        AND t.mid NOT IN ( 'MBK5778' )
 	   and t.updatedat>date(now())
-       AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.refundbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
-                               WHERE   status = 'calculated' and created_at >= Curdate()) 
+                               WHERE status = 'calculated' and created_at >= Curdate())
        ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1819,9 +1928,9 @@ WHERE  c.createdat >= Date(Now())
        AND t.mid NOT IN ( 'MBK5778' )
 	   and t.updatedat>date(now())
 	   and w.updatedat>date(now())
-       AND t.refundbatchid IN (SELECT DISTINCT( batch_id )
+       AND (t.refundbatchid, t.mid)  IN (SELECT  batch_id, merchant_id
                                FROM   kotak_settlement
-                               WHERE status = 'calculated'  and created_at >= Curdate())
+                               WHERE status = 'calculated' and created_at >= Curdate())
                                ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 )
 UNION ALL
 select inner_query.* from (SELECT t.mid                   'MID',
@@ -1900,11 +2009,11 @@ WHERE  c.createdat >= Date(Now())
 HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
                                FROM   merchant_settlement_request
                                WHERE  created_at >= Curdate())
-       AND refund_batch_id IN (SELECT DISTINCT( batch_id )
-                               FROM   kotak_settlement 
-                               WHERE  status = 'calculated' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
-"|draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE.csv
-       
+       AND (refund_batch_id, t.mid) IN (SELECT batch_id, merchant_id
+                               FROM   kotak_settlement
+                               WHERE status = 'calculated' and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
+" |draco_da | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /apps/cron/Adarsh/Draco_crons/PowerAxis/Out/AXIS_ESCROW_NMP_WORKING_FILE.csv
+
 
 }
 
