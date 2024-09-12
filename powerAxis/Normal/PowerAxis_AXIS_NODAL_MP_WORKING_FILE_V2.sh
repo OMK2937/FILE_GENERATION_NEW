@@ -56,11 +56,28 @@ where (
 and statecode in (28,38)
 
         and paymentType not in (2, 3,4)
-        and payoutbatchid in (
-                select distinct(batch_id)
-                from settlement_wapg
-                where created_at >= curdate() and status ='calculated'
-        )
+     AND
+    ( (wapg.payoutbatchid, wapg.mid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+  OR
+  (wapg.payoutbatchid, wapg.smid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+    )
+
         and (
                 wapg.mid in (
                         select mid
@@ -121,11 +138,28 @@ where (
         and ismarketplace = 'y'
         and paymentType not in (2, 3,4)
 and statecode in (241,243,261,264)
-        and refundbatchid in (
-                select distinct(batch_id)
-                from settlement_wapg
-                where created_at >= curdate() and status ='calculated'
-        )
+AND
+    ( (wapg.refundbatchid, wapg.mid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+  OR
+
+  (wapg.refundbatchid, wapg.smid) in (
+    select
+      batch_id, merchant_id
+    from
+      settlement_wapg
+    where
+      created_at >= curdate()
+      and status ='calculated'
+  )
+    )
         and (
                 wapg.mid in (
                         select mid
@@ -171,6 +205,8 @@ EOF
 }
 
 ftp_upload
+
+
 
 
 
