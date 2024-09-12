@@ -657,7 +657,7 @@ where (
                 or ismarketplace is null
         )
         and paymentType not in (2, 3, 4)
-        and payoutbatchid, mid in (
+        and (payoutbatchid, wapg.mid) in (
                 select batch_id, merchant_id
                 from settlement_wapg
                 where status = 'calculated' and created_at >= curdate()
@@ -977,7 +977,7 @@ WHERE  c.createdat >= Date(Now())
        AND w.statecode IN ( 28, 38 )
        AND partnertdr = 1
        AND t.mid NOT IN ( 'MBK5778' )
-       AND (t.payoutbatchid, t.mid IN (SELECT batch_id, merchant_id
+       AND (t.payoutbatchid, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE  status = 'calculated' and created_at >= Curdate())
         and t.statecode between 28 and 68
