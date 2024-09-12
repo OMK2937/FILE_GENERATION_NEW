@@ -1354,7 +1354,7 @@ WHERE  c.createdat >= Date(Now())
 HAVING refund_batch_id NOT IN (SELECT DISTINCT( batch_id )
                                FROM   merchant_settlement_request
                                WHERE  created_at >= Curdate())
-       AND (refund_batch_id, t.mid) IN (SELECT batch_id, mid
+       AND (refund_batch_id, t.mid) IN (SELECT batch_id, merchant_id
                                FROM   kotak_settlement
                                WHERE  status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure') and created_at >= Curdate()) ) inner_query inner join merchant_payout_config mpc on (inner_query.mid=mpc.mid and power_access_file=1 );
 "| $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > /data/cronreport-payout/AXIS_ESCROW_NMP_WORKING_FILE_automated.csv
