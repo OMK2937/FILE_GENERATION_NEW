@@ -29,7 +29,6 @@ cd /tmp/cronreports/
 #ftp -n mbk-ftp.centralindia.cloudapp.azure.com << End
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-passive
 cd makepayoutfile_wapg_report
 mkdir $CURRENTDATE
 cd $CURRENTDATE
@@ -224,7 +223,6 @@ cd /tmp/cronreports/working/
 #ftp -n mbk-ftp.centralindia.cloudapp.azure.com << End
 ftp -n 15.207.173.6 << End
 user Merchants hwMzZUhtRolr
-passive
 cd makepayoutfile_wapg_report
 cd  $CURRENTDATE
 prompt
