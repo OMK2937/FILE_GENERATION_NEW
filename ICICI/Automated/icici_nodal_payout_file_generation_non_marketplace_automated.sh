@@ -13,25 +13,114 @@ DATE7DBEFORE=`date --date="7 days ago" "+%Y-%m-%d"`
 SED=/bin/sed
 # ICICI Payout File
 echo "Count of merchants" |  mail -s "Starting payout Generation for WAPG Payout Automated Payout | Non-Marketplace Merchants | ICICI Bank | $TIMESTAMP" noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
-query="select (CASE WHEN EXISTS(SELECT 1 FROM bank_holidays WHERE bank_holidays.date = curdate() OR DAYNAME(curdate()) ='Sunday' OR (DAYNAME(curdate()) ='Saturday' AND
-FLOOR((DAYOFMONTH(curdate()) + 6 ) / 7) IN (2, 4) )) then 'I' else 'N' end) AS 'Record Identifier', merchant_id AS 'Beneficiary Code',
-DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) AS 'Execution Date', amount AS 'Transaction amount',
-DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) AS 'Incoming Credit Date',
-DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) AS 'Transaction Intimation Date',batch_id AS 'Additional Info 3',
-cASe when length(m.accHolderName) > 32 then trim(left(m.accHolderName,32)) else m.accHolderName end AS 'Additional Info 4', m.accHolderName AS'Account Name',
-m.enc_accNo AS 'Account No.', m.enc_ifsc AS 'IFSC Code' , xtraInvestedAmount AS 'XTRA INVESTMENT', 'ICICI' AS 'Bank type',batch_id AS 'Original Batch',
-'' AS 'On Demand Request Id',
-(select COALESCE(sum(pal.amount_adjusted),0.0) from payout_adjustment_ledger pal where sw.id = pal.settlement_id and pal.settlement_type=1) AS 'Loan Deduction'
-from settlement_wapg sw, merchant m
-where sw.merchant_id = m.mid and sw.created_at>=date(now()) and (sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure'))
-and sw.id and sw.merchant_id in (select mid from icici_payout_merchants where isPayoutEnabled=1)
-and batch_id like concat('%',date_format(now(),'%Y%m%d'),'%')
- and (ismarketplace is null or ismarketplace!='y') and sw.id not in (
- SELECT req.settlement_id FROM
-merchant_settlement_request_metadata req LEFT JOIN merchant_settlement_request od ON
-req.request_id = od.id LEFT JOIN settlement_wapg wapg ON
-( req.settlement_id = wapg.id AND req.settlement_type = 1 )
-WHERE od.created_at >= curdate() and req.settlement_type !=2 )";
+query="select
+  (
+    CASE WHEN EXISTS(
+      SELECT
+        1
+      FROM
+        bank_holidays
+      WHERE
+        bank_holidays.date = curdate()
+        OR DAYNAME(
+          curdate()
+        ) = 'Sunday'
+        OR (
+          DAYNAME(
+            curdate()
+          ) = 'Saturday'
+          AND FLOOR(
+            (
+              DAYOFMONTH(
+                curdate()
+              ) + 6
+            ) / 7
+          ) IN (2, 4)
+        )
+    ) then 'I' else 'N' end
+  ) AS 'Record Identifier',
+  merchant_id AS 'Beneficiary Code',
+  DATE_FORMAT(
+    STR_TO_DATE(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Execution Date',
+  amount AS 'Transaction amount',
+  DATE_FORMAT(
+    STR_TO_DATE(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Incoming Credit Date',
+  DATE_FORMAT(
+    STR_TO_DATE(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Transaction Intimation Date',
+  batch_id AS 'Additional Info 3',
+  cASe when length(m.accHolderName) > 32 then trim(
+    left(m.accHolderName, 32)
+  ) else m.accHolderName end AS 'Additional Info 4',
+  m.accHolderName AS 'Account Name',
+  m.enc_accNo AS 'Account No.',
+  m.enc_ifsc AS 'IFSC Code',
+  xtraInvestedAmount AS 'XTRA INVESTMENT',
+  'ICICI' AS 'Bank type',
+  batch_id AS 'Original Batch',
+  '' AS 'On Demand Request Id',
+  (
+    select
+      COALESCE(
+        sum(pal.amount_adjusted),
+        0.0
+      )
+    from
+      payout_adjustment_ledger pal
+    where
+      sw.id = pal.settlement_id
+      and pal.settlement_type = 1
+  ) AS 'Loan Deduction'
+from
+  settlement_wapg sw,
+  merchant m
+where
+  sw.merchant_id = m.mid
+  and sw.created_at >= date(now())
+  and (
+    sw.status IN (
+      'automated_success', 'automated_failure',
+      'automated_pending', 'automated_confirm_failure'
+    )
+  )
+  and sw.id
+  and sw.merchant_id in (
+    select
+      mid
+    from
+      icici_payout_merchants
+    where
+      isPayoutEnabled = 1
+  )
+  and batch_id like concat(
+    '%',
+    date_format(now(), '%Y%m%d'),
+    '%'
+  )
+  and (
+    ismarketplace is null
+    or ismarketplace != 'y'
+  )
+  and sw.id not in (
+    SELECT
+      req.settlement_id
+    FROM
+      merchant_settlement_request_metadata req
+      LEFT JOIN merchant_settlement_request od ON req.request_id = od.id
+      LEFT JOIN settlement_wapg wapg ON (
+        req.settlement_id = wapg.id
+        AND req.settlement_type = 1
+      )
+    WHERE
+      od.created_at >= curdate()
+      and req.settlement_type != 2
+  )
+";
 echo "$query" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> ${COMPRESSDIR}/Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_$CURRENTDATE.csv
 cd /tmp/cronreports/ && tar -zcvf Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_${CURRENTDATE}.tar.gz Payment_Benificiary_ICICI_MBK_Non_marketplace_automated_${CURRENTDATE}
 

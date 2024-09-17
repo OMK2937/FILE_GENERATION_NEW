@@ -14,11 +14,256 @@ SED=/bin/sed
 
 echo mail -s "Starting payout File Generation for ICICI Mplace Automated Payout| Marketplace Merchants | ICICI Bank | $TIMESTAMP" -r noc@mobikwik.com walletops@mobikwik.com merc-common@mobikwik.com merc@mobikwik.com shashank.v@mobikwik.com mpr@mobikwik.com
 
-query2="select (CASE WHEN EXISTS(SELECT 1 FROM bank_holidays WHERE bank_holidays.date = curdate() OR DAYNAME(curdate()) ='Sunday' OR (DAYNAME(curdate()) ='Saturday' AND FLOOR((DAYOFMONTH(curdate()) + 6 ) / 7) IN (2, 4) )) then 'I' else 'N' end) as 'Record Identifier', merchant_id as 'Beneficiary Code', DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Execution Date', amount as 'Transaction amount', DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Incoming Credit Date',DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Transaction Intimation Date',batch_id as 'Additional Info 3', case when length(s.accHolderName) > 32 then trim(left(s.accHolderName,32)) else s.accHolderName end as 'Additional Info 4' , s.accHolderName as 'Account Name', s.enc_accNo as 'Account No.', s.enc_ifsc as 'IFSC Code', xtraInvestedAmount as 'XTRA INVESTMENT', 'ICICI' as 'Bank type',batch_id as 'Original Batch', '' as 'On Demand Request Id', 0.0 as 'Loan Deduction' from settlement_wapg sw, submerchant s where sw.merchant_id = s.smid and  (sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure'))  and  sw.merchant_id in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and s.splittype = 0 and s.enabledForCombinedPayout = 0 and batch_id like concat('%',date_format(now(),'%Y%m%d'),'%')
-union all
-select (CASE WHEN EXISTS(SELECT 1 FROM bank_holidays WHERE bank_holidays.date = curdate() OR DAYNAME(curdate()) ='Sunday' OR (DAYNAME(curdate()) ='Saturday' AND FLOOR((DAYOFMONTH(curdate()) + 6 ) / 7) IN (2, 4) )) then 'I' else 'N' end) as 'Record Identifier', s.parentmid as 'Beneficiary Code', DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Execution Date', sum(amount) as 'Transaction amount', DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Incoming Credit Date',DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Transaction Intimation Date',batch_id as 'Additional Info 3', case when length(s.accHolderName) > 32 then trim(left(s.accHolderName,32)) else s.accHolderName end as 'Additional Info 4',case when length(s.accHolderName) > 32 then trim(left(s.accHolderName,32)) else s.accHolderName end as 'Account Name', s.enc_accNo as 'Account No.', s.enc_ifsc as 'IFSC Code', xtraInvestedAmount as 'XTRA INVESTMENT', 'ICICI' as 'Bank type',batch_id as 'Original Batch', '' as 'On Demand Request Id', 0.0 as 'Loan Deduction' from settlement_wapg sw, submerchant s, merchant m where sw.merchant_id = s.smid and (sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure'))  and  sw.merchant_id in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and s.splittype = 0 and s.enabledForCombinedPayout = 1 and batch_id like concat('%',date_format(now(),'%Y%m%d'),'%') and m.mid = s.parentmid group by s.parentmid,batch_id
-union all
-select (CASE WHEN EXISTS(SELECT 1 FROM bank_holidays WHERE bank_holidays.date = curdate() OR DAYNAME(curdate()) ='Sunday' OR (DAYNAME(curdate()) ='Saturday' AND FLOOR((DAYOFMONTH(curdate()) + 6 ) / 7) IN (2, 4) )) then 'I' else 'N' end) as 'Record Identifier', s.parentmid as 'Beneficiary Code', DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Execution Date', amount as 'Transaction amount', DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Incoming Credit Date',DATE_FORMAT(STR_TO_DATE(txn_date, '%d/%m/%Y'), '%d-%b-%Y' ) as 'Transaction Intimation Date',batch_id as 'Additional Info 3', case when length(s.accHolderName) > 32 then trim(left(s.accHolderName,32)) else s.accHolderName end as 'Additional Info 4',case when length(s.accHolderName) > 32 then trim(left(s.accHolderName,32)) else s.accHolderName end as 'Account Name', s.enc_accNo as 'Account No.', s.enc_ifsc as 'IFSC Code', xtraInvestedAmount as 'XTRA INVESTMENT', 'ICICI' as 'Bank type',batch_id as 'Original Batch', '' as 'On Demand Request Id', 0.0 as 'Loan Deduction' from settlement_wapg sw, submerchant s,merchant m where sw.merchant_id = m.mid and (sw.status IN ('automated_success', 'automated_failure', 'automated_pending', 'automated_confirm_failure'))  and sw.merchant_id in (select mid from icici_payout_merchants  where isPayoutEnabled=1) and  s.splittype = 5 and sw.batch_id like concat('%',date_format(now(),'%Y%m%d'),'%') and m.mid = s.parentmid and ismarketplace='y' group by s.parentmid,batch_id";
+query2="SELECT
+  (
+    CASE WHEN EXISTS(
+      SELECT
+        1
+      FROM
+        bank_holidays
+      WHERE
+        bank_holidays.date = Curdate()
+        OR Dayname(
+          Curdate()
+        ) = 'Sunday'
+        OR (
+          Dayname(
+            Curdate()
+          ) = 'Saturday'
+          AND Floor(
+            (
+              Dayofmonth(
+                Curdate()
+              ) + 6
+            ) / 7
+          ) IN (2, 4)
+        )
+    ) THEN 'I' ELSE 'N' END
+  ) AS 'Record Identifier',
+  merchant_id AS 'Beneficiary Code',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Execution Date',
+  amount AS 'Transaction amount',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Incoming Credit Date',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Transaction Intimation Date',
+  batch_id AS 'Additional Info 3',
+  CASE WHEN Length(s.accholdername) > 32 THEN Trim(
+    LEFT(s.accholdername, 32)
+  ) ELSE s.accholdername END AS 'Additional Info 4',
+  s.accholdername AS 'Account Name',
+  s.enc_accno AS 'Account No.',
+  s.enc_ifsc AS 'IFSC Code',
+  xtrainvestedamount AS 'XTRA INVESTMENT',
+  'ICICI' AS 'Bank type',
+  batch_id AS 'Original Batch',
+  '' AS 'On Demand Request Id',
+  0.0 AS 'Loan Deduction'
+FROM
+  settlement_wapg sw,
+  submerchant s
+WHERE
+  sw.merchant_id = s.smid
+  AND (
+    sw.status IN (
+      'automated_success', 'automated_failure',
+      'automated_pending', 'automated_confirm_failure'
+    )
+  )
+  AND sw.merchant_id IN (
+    SELECT
+      mid
+    FROM
+      icici_payout_merchants
+    WHERE
+      ispayoutenabled = 1
+  )
+  AND s.splittype = 0
+  AND s.enabledforcombinedpayout = 0
+  AND batch_id LIKE Concat(
+    '%',
+    Date_format(Now(), '%Y%m%d'),
+    '%'
+  )
+UNION ALL
+SELECT
+  (
+    CASE WHEN EXISTS(
+      SELECT
+        1
+      FROM
+        bank_holidays
+      WHERE
+        bank_holidays.date = Curdate()
+        OR Dayname(
+          Curdate()
+        ) = 'Sunday'
+        OR (
+          Dayname(
+            Curdate()
+          ) = 'Saturday'
+          AND Floor(
+            (
+              Dayofmonth(
+                Curdate()
+              ) + 6
+            ) / 7
+          ) IN (2, 4)
+        )
+    ) THEN 'I' ELSE 'N' END
+  ) AS 'Record Identifier',
+  s.parentmid AS 'Beneficiary Code',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Execution Date',
+  Sum(amount) AS 'Transaction amount',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Incoming Credit Date',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Transaction Intimation Date',
+  batch_id AS 'Additional Info 3',
+  CASE WHEN Length(s.accholdername) > 32 THEN Trim(
+    LEFT(s.accholdername, 32)
+  ) ELSE s.accholdername END AS 'Additional Info 4',
+  CASE WHEN Length(s.accholdername) > 32 THEN Trim(
+    LEFT(s.accholdername, 32)
+  ) ELSE s.accholdername END AS 'Account Name',
+  s.enc_accno AS 'Account No.',
+  s.enc_ifsc AS 'IFSC Code',
+  xtrainvestedamount AS 'XTRA INVESTMENT',
+  'ICICI' AS 'Bank type',
+  batch_id AS 'Original Batch',
+  '' AS 'On Demand Request Id',
+  0.0 AS 'Loan Deduction'
+FROM
+  settlement_wapg sw,
+  submerchant s,
+  merchant m
+WHERE
+  sw.merchant_id = s.smid
+  AND (
+    sw.status IN (
+      'automated_success', 'automated_failure',
+      'automated_pending', 'automated_confirm_failure'
+    )
+  )
+  AND sw.merchant_id IN (
+    SELECT
+      mid
+    FROM
+      icici_payout_merchants
+    WHERE
+      ispayoutenabled = 1
+  )
+  AND s.splittype = 0
+  AND s.enabledforcombinedpayout = 1
+  AND batch_id LIKE Concat(
+    '%',
+    Date_format(Now(), '%Y%m%d'),
+    '%'
+  )
+  AND m.mid = s.parentmid
+GROUP BY
+  s.parentmid,
+  batch_id
+UNION ALL
+SELECT
+  (
+    CASE WHEN EXISTS(
+      SELECT
+        1
+      FROM
+        bank_holidays
+      WHERE
+        bank_holidays.date = Curdate()
+        OR Dayname(
+          Curdate()
+        ) = 'Sunday'
+        OR (
+          Dayname(
+            Curdate()
+          ) = 'Saturday'
+          AND Floor(
+            (
+              Dayofmonth(
+                Curdate()
+              ) + 6
+            ) / 7
+          ) IN (2, 4)
+        )
+    ) THEN 'I' ELSE 'N' END
+  ) AS 'Record Identifier',
+  s.parentmid AS 'Beneficiary Code',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Execution Date',
+  amount AS 'Transaction amount',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Incoming Credit Date',
+  Date_format(
+    Str_to_date(txn_date, '%d/%m/%Y'),
+    '%d-%b-%Y'
+  ) AS 'Transaction Intimation Date',
+  batch_id AS 'Additional Info 3',
+  CASE WHEN Length(s.accholdername) > 32 THEN Trim(
+    LEFT(s.accholdername, 32)
+  ) ELSE s.accholdername END AS 'Additional Info 4',
+  CASE WHEN Length(s.accholdername) > 32 THEN Trim(
+    LEFT(s.accholdername, 32)
+  ) ELSE s.accholdername END AS 'Account Name',
+  s.enc_accno AS 'Account No.',
+  s.enc_ifsc AS 'IFSC Code',
+  xtrainvestedamount AS 'XTRA INVESTMENT',
+  'ICICI' AS 'Bank type',
+  batch_id AS 'Original Batch',
+  '' AS 'On Demand Request Id',
+  0.0 AS 'Loan Deduction'
+FROM
+  settlement_wapg sw,
+  submerchant s,
+  merchant m
+WHERE
+  sw.merchant_id = m.mid
+  AND (
+    sw.status IN (
+      'automated_success', 'automated_failure',
+      'automated_pending', 'automated_confirm_failure'
+    )
+  )
+  AND sw.merchant_id IN (
+    SELECT
+      mid
+    FROM
+      icici_payout_merchants
+    WHERE
+      ispayoutenabled = 1
+  )
+  AND s.splittype = 5
+  AND sw.batch_id LIKE Concat(
+    '%',
+    Date_format(Now(), '%Y%m%d'),
+    '%'
+  )
+  AND m.mid = s.parentmid
+  AND ismarketplace = 'y'
+GROUP BY
+  s.parentmid,
+  batch_id";
 echo "$query2" | $MYSQL --login-path=mobinewcronmaster_RDS01 -D $DB | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' >> ${COMPRESSDIR}/Payment_Benificiary_ICICI_MBK_Mplac_automated_$CURRENTDATE.csv
 T1=`date "+%Y-%m-%d %H-%M-%S"`
 echo "$T1"
